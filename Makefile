@@ -15,7 +15,7 @@ else
     EXECUTABLE := dist/changeCamera
 endif
 
-.PHONY: help venv install build clean run test
+.PHONY: help venv install build clean run test activate
 
 # Default target
 help:
@@ -26,11 +26,20 @@ help:
 	@echo "  make clean      - Remove build artifacts and venv"
 	@echo "  make run GROUP=N - Run the script with camera group N (requires venv)"
 	@echo "  make all        - Setup venv, install deps, and build executable"
+	@echo "  make activate   - Show command to activate venv manually"
 
-# Create virtual environment
+# Create virtual environment (only if it doesn't exist)
 venv:
-	python3 -m venv venv
-	@echo "Virtual environment created. Run 'make install' to install dependencies."
+ifeq ($(OS),Windows_NT)
+	@if not exist venv (python -m venv venv && echo Virtual environment created.) else (echo Virtual environment already exists.)
+else
+	@if [ ! -d "venv" ]; then \
+		python3 -m venv venv && echo "Virtual environment created."; \
+	else \
+		echo "Virtual environment already exists."; \
+	fi
+endif
+	@echo "Run 'make install' to install dependencies."
 
 # Install dependencies
 install: venv
@@ -64,4 +73,15 @@ clean-all: clean
 # Setup everything and build
 all: venv install build
 	@echo "Setup complete! Executable available at: $(EXECUTABLE)"
+
+# Show how to activate venv manually
+activate: venv
+ifeq ($(OS),Windows_NT)
+	@echo "To activate the virtual environment, run:"
+	@echo "  venv\\Scripts\\activate.bat    (Command Prompt)"
+	@echo "  venv\\Scripts\\Activate.ps1    (PowerShell)"
+else
+	@echo "To activate the virtual environment, run:"
+	@echo "  source venv/bin/activate"
+endif
 
