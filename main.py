@@ -42,6 +42,9 @@ def loop():
     t = ir['SessionTime']
     print('session time:', t)
 
+    f = ir['SessionFlags']
+    print('session flags:', f)
+
     # retrieve CarSetup from session data
     # we also check if CarSetup data has been updated
     # with ir.get_session_info_update_by_key(key)
