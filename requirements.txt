@@ -1,2 +1,4 @@
 pyirsdk==1.3.5
-
+websocket-client
+websockets
+obs-websocket-py

@@ -15,7 +15,7 @@ else
     EXECUTABLE := dist/changeCamera
 endif
 
-.PHONY: help venv install build clean run test activate
+.PHONY: help venv install build clean run test activate test-obs
 
 # Default target
 help:
@@ -27,6 +27,7 @@ help:
 	@echo "  make run GROUP=N - Run the script with camera group N (requires venv)"
 	@echo "  make all        - Setup venv, install deps, and build executable"
 	@echo "  make activate   - Show command to activate venv manually"
+	@echo "  make test-obs   - Run OBS WebSocket connection troubleshooting"
 
 # Create virtual environment (only if it doesn't exist)
 venv:
@@ -84,4 +85,9 @@ else
 	@echo "To activate the virtual environment, run:"
 	@echo "  source venv/bin/activate"
 endif
+
+# Test OBS WebSocket connection
+test-obs: install
+	@echo "Running OBS WebSocket troubleshooting..."
+	$(PYTHON) obs_troubleshoot.py
 

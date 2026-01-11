@@ -156,6 +156,13 @@ if __name__ == '__main__':
     state = State()
 
     try:
+        check_iracing()
+
+        # Get a list of all available variables
+        available_vars = ir.var_headers_names
+
+        open('vars.txt', 'w').write('\n'.join(available_vars))  # Save the list to a file
+
         # infinite loop
         while True:
             # check if we are connected to iracing
