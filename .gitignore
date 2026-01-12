@@ -1,3 +1,11 @@
+## OS
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
 # Virtual environment
 venv/
 env/
