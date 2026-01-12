@@ -23,3 +23,6 @@ __pycache__/
 logs/
 *.log
 *.jsonl
+
+# iRacing telemetry files
+*.ibt
