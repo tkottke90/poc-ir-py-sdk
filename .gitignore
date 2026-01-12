@@ -18,3 +18,8 @@ __pycache__/
 .idea/
 *.swp
 *.swo
+
+# Logs
+logs/
+*.log
+*.jsonl

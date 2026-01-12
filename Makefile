@@ -61,6 +61,19 @@ ifndef GROUP
 endif
 	$(PYTHON) changeCamera.py $(GROUP)
 
+# Run main.py with live telemetry
+run-live: install
+	$(PYTHON) src/main.py
+
+# Run main.py with telemetry file (example: make run-file FILE=replay.ibt)
+run-file: install
+ifdef FILE
+	$(PYTHON) src/main.py --file $(FILE)
+else
+	@echo "Error: Please specify FILE path (e.g., make run-file FILE=replay.ibt)"
+	@exit 1
+endif
+
 # Clean build artifacts
 clean:
 	$(RMDIR) build dist __pycache__ *.spec 2>/dev/null || true

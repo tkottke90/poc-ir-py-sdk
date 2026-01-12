@@ -1,73 +1,16 @@
+import argparse
+from datetime import datetime
+import sys
 import irsdk
 import time
 import os
+from event_trackers import pit_monitor
+from decoders.race_flags import decode_session_flags
+from iracing import State, TelemetryHandler, LiveTelemetryHandler, FileTelemetryHandler
+from logger import setup_logger
 
-# this is our State class, with some helpful variables
-class State:
-    ir_connected = False
-    last_car_setup_tick = -1
-
-# function to decode session flags from binary
-def decode_session_flags(flags):
-    active_flags = []
-
-    # Global flags
-    if flags & irsdk.Flags.checkered:
-        active_flags.append('CHECKERED')
-    if flags & irsdk.Flags.white:
-        active_flags.append('WHITE')
-    if flags & irsdk.Flags.green:
-        active_flags.append('GREEN')
-    if flags & irsdk.Flags.yellow:
-        active_flags.append('YELLOW')
-    if flags & irsdk.Flags.red:
-        active_flags.append('RED')
-    if flags & irsdk.Flags.blue:
-        active_flags.append('BLUE')
-    if flags & irsdk.Flags.debris:
-        active_flags.append('DEBRIS')
-    if flags & irsdk.Flags.crossed:
-        active_flags.append('CROSSED')
-    if flags & irsdk.Flags.yellow_waving:
-        active_flags.append('YELLOW_WAVING')
-    if flags & irsdk.Flags.one_lap_to_green:
-        active_flags.append('ONE_LAP_TO_GREEN')
-    if flags & irsdk.Flags.green_held:
-        active_flags.append('GREEN_HELD')
-    if flags & irsdk.Flags.ten_to_go:
-        active_flags.append('TEN_TO_GO')
-    if flags & irsdk.Flags.five_to_go:
-        active_flags.append('FIVE_TO_GO')
-    if flags & irsdk.Flags.random_waving:
-        active_flags.append('RANDOM_WAVING')
-    if flags & irsdk.Flags.caution:
-        active_flags.append('CAUTION')
-    if flags & irsdk.Flags.caution_waving:
-        active_flags.append('CAUTION_WAVING')
-
-    # Driver black flags
-    if flags & irsdk.Flags.black:
-        active_flags.append('BLACK')
-    if flags & irsdk.Flags.disqualify:
-        active_flags.append('DISQUALIFY')
-    if flags & irsdk.Flags.servicible:
-        active_flags.append('SERVICIBLE')
-    if flags & irsdk.Flags.furled:
-        active_flags.append('FURLED')
-    if flags & irsdk.Flags.repair:
-        active_flags.append('REPAIR')
-
-    # Start lights
-    if flags & irsdk.Flags.start_hidden:
-        active_flags.append('START_HIDDEN')
-    if flags & irsdk.Flags.start_ready:
-        active_flags.append('START_READY')
-    if flags & irsdk.Flags.start_set:
-        active_flags.append('START_SET')
-    if flags & irsdk.Flags.start_go:
-        active_flags.append('START_GO')
-
-    return active_flags if active_flags else ['NONE']
+logger = setup_logger( console_output=False )
+debug = False
 
 # function to clear the terminal screen
 def clear_screen():
@@ -78,25 +21,23 @@ def clear_screen():
     else:
         os.system('clear')
 
-# here we check if we are connected to iracing
-# so we can retrieve some data
-def check_iracing():
-    if state.ir_connected and not (ir.is_initialized and ir.is_connected):
-        state.ir_connected = False
-        # don't forget to reset your State variables
-        state.last_car_setup_tick = -1
-        # we are shutting down ir library (clearing all internal variables)
-        ir.shutdown()
-        print('irsdk disconnected')
-    elif not state.ir_connected and ir.startup() and ir.is_initialized and ir.is_connected:
-        state.ir_connected = True
-        print('irsdk connected')
-
 # our main loop, where we retrieve data
 # and do something useful with it
-def loop():
+def loop(ir: TelemetryHandler, state: State):
     # clear the screen at the start of each loop
     clear_screen()
+    
+    # Get the next tick or session time
+    next_tick = ir.get_next_tick()
+
+    # Write Console Header
+    print('iRacing Telemetry Monitor')
+    print('========================')
+    print('')
+    # Show Current Date/Time
+    print(f'Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+    print(f'Connected: {state.ir_connected} [Type: {ir.name}]')
+    print(f'Playback: {ir.get_playback_display()}')
 
     # on each tick we freeze buffer with live telemetry
     # it is optional, but useful if you use vars like CarIdxXXX
@@ -113,22 +54,28 @@ def loop():
     # this is not full list, because some cars has additional
     # specific variables, like break bias, wings adjustment, etc
     t = ir['SessionTime']
-    print('session time:', t)
-
     f = ir['SessionFlags']
-    print('session flags (raw):', hex(f))
-    print('session flags (decoded):', ', '.join(decode_session_flags(f)))
+    s = ir['PlayerTrackSurface']
+    pits = pit_monitor.getPitStatus(ir)
+
+    if debug:
+        print(f'Surface: {s}')
+        print('session time:', t)
+        print('session flags (raw):', hex(f))
+        print('session flags (decoded):', ', '.join(decode_session_flags(f)))
+        print('pit status:', pits)
 
     # retrieve CarSetup from session data
     # we also check if CarSetup data has been updated
     # with ir.get_session_info_update_by_key(key)
     # but first you need to request data, before checking if its updated
-    car_setup = ir['CarSetup']
-    if car_setup:
-        car_setup_tick = ir.get_session_info_update_by_key('CarSetup')
-        if car_setup_tick != state.last_car_setup_tick:
-            state.last_car_setup_tick = car_setup_tick
-            print('car setup update count:', car_setup['UpdateCount'])
+    # car_setup = ir['CarSetup']
+    # logger.debug('Loop:', extra={'car_setup': car_setup})
+    # if car_setup:
+    #     car_setup_tick = ir.get_session_info_update_by_key('CarSetup')
+    #     if car_setup_tick != state.last_car_setup_tick:
+    #         state.last_car_setup_tick = car_setup_tick
+    #         print('car setup update count:', car_setup['UpdateCount'])
             # now you can go to garage, and do some changes with your setup
             # this line will be printed, only when you change something
             # and press apply button, but not every 1 sec
@@ -148,32 +95,85 @@ def loop():
     # and very first camera in list of cameras in iracing
     # while script is running, change camera by yourself in iracing
     # and notice how this code changes it back every 1 sec
-    ir.cam_switch_pos(0, 1)
+    # ir.cam_switch_pos(0, 1)
 
 if __name__ == '__main__':
-    # initializing ir and state
-    ir = irsdk.IRSDK()
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='iRacing telemetry parser and monitor')
+    parser.add_argument('--file', help='Path to iRacing telemetry file (e.g., replay.ibt)')
+    parser.add_argument('--debug', help='Enable debugging', action='store_true')
+    parser.add_argument('--playback-speed',
+                        type=str,
+                        default='normal',
+                        choices=['slow', 'normal', 'fast'],
+                        help='Playback speed for IBT files. Default: normal')
+    args = parser.parse_args()
+
+    logger.debug('Setup: Arguments Parsed')
+
+    # Initializing State
     state = State()
+    debug = args.debug
+
+    logger.debug('Setup: State Created')
+
+    # initializing ir and state
+    if args.file:
+        print(f'Loading telemetry from file: {args.file}')
+        print(f'Playback speed: {args.playback_speed}')
+        ir = FileTelemetryHandler(args.file, playback_speed=args.playback_speed)
+
+        logger.info('FileTelemetryHandler: SessionTime', extra={'data': ir.ibt.get_all('SessionTime')})
+        ir.connect()
+
+        
+    else:
+        print('Connecting to live iRacing session...')
+        ir = LiveTelemetryHandler()
+
+    logger.debug('Setup: Telemetry Handler Created', extra={'file': args.file})
 
     try:
-        check_iracing()
+        retry = 0
 
-        # Get a list of all available variables
-        available_vars = ir.var_headers_names
-
-        open('vars.txt', 'w').write('\n'.join(available_vars))  # Save the list to a file
-
-        # infinite loop
+        # application loop
+        logger.debug('Setup: Starting Loop')
         while True:
             # check if we are connected to iracing
-            check_iracing()
+            logger.debug('Loop: Checking iRacing Connection')
+            state.check_iracing(ir)
             # if we are, then process data
             if state.ir_connected:
-                loop()
+                # Reset retry
+                retry = 0
+
+                # Loop over data
+                logger.debug('Loop: iRacing Connected')
+                loop(
+                  ir = ir,
+                  state = state
+                )
+            else:
+                logger.debug('Loop: iRacing Not Connected')
+                retry += 1
+                if retry > 5:
+                    raise Exception('Failed to connect to iRacing after 5 retries')
             # sleep for 1 second
             # maximum you can use is 1/60
             # cause iracing updates data with 60 fps
             time.sleep(1)
+
     except KeyboardInterrupt:
         # press ctrl+c to exit
+        print('User Triggered Shutdown....')
         pass
+    
+    except Exception as e:
+        # catch any other exceptions
+        print(f'Error: {e}')
+        print('Unexpected Error, Shutting Down....')
+    
+    finally:
+        # shutting down ir library
+        ir.disconnect()
