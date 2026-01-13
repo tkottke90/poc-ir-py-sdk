@@ -21,6 +21,62 @@ def clear_screen():
     else:
         os.system('clear')
 
+def show_session_stats(ir: TelemetryHandler):
+    print('')
+    print('== Session Stats ==')
+    t = ir['SessionTime']
+    f = ir['SessionFlags']
+    n = ir['SessionNum']
+    s = ir['SessionState']
+
+    print(f'Session State: {ir.decode_session_state(s)} ({s})')
+    print(f'Session Time:  {t}')
+    print(f'Session Flags: {ir.decode_session_flags(f)} ({f})')
+    print('')
+    print(f'Lap:       {ir["Lap"]}')
+    print(f'Race Laps: {ir["RaceLaps"]}')
+
+def show_car_stats(ir: TelemetryHandler):
+    isOnTrack = ir['IsOnTrackCar']
+    
+    if not isOnTrack:
+        print('')
+        print('== Car Stats [OFF TRACK] ==')
+
+        return
+    
+    print('')
+    print('== Car Stats ==')
+    s = ir['CarIdxTrackSurface']
+    pits = pit_monitor.getPitStatus(ir)
+
+    print(f'Car Surface: {ir.decode_car_location(s)} ({s})')
+
+def show_driver_stats(ir: TelemetryHandler):
+    isOnTrack = ir['IsOnTrack']
+    isInGarage = ir['IsInGarage']
+    
+    if not isInGarage or not isOnTrack:
+        print('')
+        print('== Player Stats [OFF TRACK] ==')
+
+        return
+
+    print('')
+    print('== Player Stats ==')
+    p = ir['PlayerTrackSurface']
+    
+    print(f'Player Surface: {ir.decode_car_location(p)} ({p})')
+
+    lapCompleted = ir['LapCompleted']
+    lapDist = ir['LapDistPct']
+
+    print(f'Lap Completed: {lapCompleted}')
+
+    if lapDist > 0:
+        print(f'Lap Dist:      {lapDist:.2f}%')
+
+
 # our main loop, where we retrieve data
 # and do something useful with it
 def loop(ir: TelemetryHandler, state: State):
@@ -53,17 +109,13 @@ def loop(ir: TelemetryHandler, state: State):
     # https://github.com/kutu/pyirsdk/blob/master/vars.txt
     # this is not full list, because some cars has additional
     # specific variables, like break bias, wings adjustment, etc
-    t = ir['SessionTime']
-    f = ir['SessionFlags']
-    s = ir['PlayerTrackSurface']
-    pits = pit_monitor.getPitStatus(ir)
 
     if debug:
-        print(f'Surface: {s}')
-        print('session time:', t)
-        print('session flags (raw):', hex(f))
-        print('session flags (decoded):', ', '.join(decode_session_flags(f)))
-        print('pit status:', pits)
+        show_session_stats(ir)
+        
+        show_car_stats(ir)
+        
+        show_driver_stats(ir)
 
     # retrieve CarSetup from session data
     # we also check if CarSetup data has been updated
@@ -108,7 +160,15 @@ if __name__ == '__main__':
                         default='normal',
                         choices=['slow', 'normal', 'fast'],
                         help='Playback speed for IBT files. Default: normal')
+    parser.add_argument('--skip',
+                        type=float,
+                        default=0.0,
+                        help='Skip to position in replay (0.0 = start, 0.5 = middle, 1.0 = end). Default: 0.0')
     args = parser.parse_args()
+
+    # Validate skip argument
+    if not 0.0 <= args.skip <= 1.0:
+        parser.error('--skip must be between 0.0 and 1.0')
 
     logger.debug('Setup: Arguments Parsed')
 
@@ -122,7 +182,9 @@ if __name__ == '__main__':
     if args.file:
         print(f'Loading telemetry from file: {args.file}')
         print(f'Playback speed: {args.playback_speed}')
-        ir = FileTelemetryHandler(args.file, playback_speed=args.playback_speed)
+        if args.skip > 0.0:
+            print(f'Skipping to: {args.skip * 100:.1f}% of replay')
+        ir = FileTelemetryHandler(args.file, playback_speed=args.playback_speed, skip_to=args.skip)
 
         logger.info('FileTelemetryHandler: SessionTime', extra={'data': ir.ibt.get_all('SessionTime')})
         ir.connect()

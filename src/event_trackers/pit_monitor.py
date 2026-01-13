@@ -10,7 +10,7 @@ def getPitStatus(iracingInstance: TelemetryHandler) -> dict:
 
     # Check if the car is being towed
     towTimeRemaining = iracingInstance['PlayerCarTowTime']
-    isTowed = towTimeRemaining > 0
+    isTowing= towTimeRemaining > 0
 
     # Check if the car is in the pit lane (TrkLoc = 2)
     isInPitLane = iracingInstance['OnPitRoad']
@@ -29,6 +29,7 @@ def getPitStatus(iracingInstance: TelemetryHandler) -> dict:
         'isServiceable': isServiceable,
         'isInPitLane': isInPitLane,
         'isInPitStall': isInPitStall,
+        'isTowing': isTowing,
         'optionalRepairTimeRemaining': optionalRepairTimeRemaining,
         'mandatoryRepairTimeRemaining': mandatoryRepairTimeRemaining
     })

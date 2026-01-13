@@ -38,6 +38,12 @@ class TelemetryHandler:
 
     def decode_session_flags(self, flags):
         return decoders.decode_session_flags(flags)
+    
+    def decode_car_location(self, location):
+        return decoders.decode_car_location(location)
+    
+    def decode_session_state(self, state):
+        return decoders.decode_session_state(state)
 
     def freeze_var_buffer_latest(self):
         pass
@@ -122,7 +128,7 @@ class LiveTelemetryHandler(TelemetryHandler):
 class FileTelemetryHandler(TelemetryHandler):
     name = 'File'
 
-    def __init__(self, file_path, playback_speed='normal'):
+    def __init__(self, file_path, playback_speed='normal', skip_to=0.0):
         super().__init__()
         self.ibt = IBT()
         self.file_path = file_path
@@ -135,6 +141,11 @@ class FileTelemetryHandler(TelemetryHandler):
         else:
             raise ValueError(f"playback_speed must be a string or PlaybackSpeed enum, got {type(playback_speed)}")
 
+        # Validate skip_to is between 0 and 1
+        if not 0.0 <= skip_to <= 1.0:
+            raise ValueError(f"skip_to must be between 0.0 and 1.0, got {skip_to}")
+
+        self.skip_to = skip_to
         self.current_frame = 0
         self.total_frames = 0
         self.tick_rate = 60  # Default iRacing tick rate (60 Hz)
@@ -148,8 +159,8 @@ class FileTelemetryHandler(TelemetryHandler):
             self.total_frames = self.ibt._disk_header.session_record_count
             # Get the actual tick rate from the file header
             self.tick_rate = self.ibt._header.tick_rate
-            # Start at frame 0
-            self.current_frame = 0
+            # Calculate starting frame based on skip_to (0.0 to 1.0)
+            self.current_frame = int(self.total_frames * self.skip_to)
 
     def disconnect(self):
         self.ibt.close()
@@ -193,6 +204,7 @@ class FileTelemetryHandler(TelemetryHandler):
             'playback_speed': self.playback_speed.name,
             'speed_multiplier': self.playback_speed.multiplier,
             'tick_rate': self.tick_rate,
+            'skip_to': self.skip_to,
             'progress_percent': (self.current_frame / self.total_frames * 100) if self.total_frames > 0 else 0
         }
     
