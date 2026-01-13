@@ -14,3 +14,13 @@ def selected_camera(ir: TelemetryHandler):
     cameras = get_cameras(ir)
     camId = ir['CamGroupNumber']
 
+    if not cameras or not camId:
+        return 'Unknown'
+    
+    current_camera = next((cam for cam in cameras if cam['CamGroupNumber'] == camId), None)
+
+    if current_camera:
+        return current_camera['CameraName']
+    
+    return 'Unknown'
+

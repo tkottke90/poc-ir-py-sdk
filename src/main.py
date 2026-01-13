@@ -1,7 +1,5 @@
 import argparse
 from datetime import datetime
-import sys
-import irsdk
 import time
 import os
 from event_trackers import pit_monitor
