@@ -1,0 +1,103 @@
+from pydantic import BaseModel
+from typing import Optional
+
+
+class WeekendOptions(BaseModel):
+    NumStarters: int
+    StartingGrid: str
+    QualifyScoring: str
+    CourseCautions: str
+    StandingStart: int
+    ShortParadeLap: int
+    Restarts: str
+    WeatherType: str
+    Skies: str
+    WindDirection: str
+    WindSpeed: str
+    WeatherTemp: str
+    RelativeHumidity: str
+    FogLevel: str
+    TimeOfDay: str
+    Date: str
+    EarthRotationSpeedupFactor: int
+    Unofficial: int
+    CommercialMode: str
+    NightMode: str
+    IsFixedSetup: int
+    StrictLapsChecking: str
+    HasOpenRegistration: int
+    HardcoreLevel: int
+    NumJokerLaps: int
+    IncidentLimit: str
+    IncidentWarningInitialLimit: str
+    IncidentWarningSubsequentLimit: str
+    FastRepairsLimit: str
+    GreenWhiteCheckeredLimit: int
+
+
+class TelemetryOptions(BaseModel):
+    TelemetryDiskFile: str
+
+
+class Weekend(BaseModel):
+    TrackName: str
+    TrackID: int
+    TrackLength: str
+    TrackLengthOfficial: str
+    TrackDisplayName: str
+    TrackDisplayShortName: str
+    TrackConfigName: str
+    TrackCity: str
+    TrackState: str
+    TrackCountry: str
+    TrackAltitude: str
+    TrackLatitude: str
+    TrackLongitude: str
+    TrackNorthOffset: str
+    TrackNumTurns: int
+    TrackPitSpeedLimit: str
+    TrackPaceSpeed: str
+    TrackNumPitStalls: int
+    TrackType: str
+    TrackDirection: str
+    TrackWeatherType: str
+    TrackSkies: str
+    TrackSurfaceTemp: str
+    TrackSurfaceTempCrew: str
+    TrackAirTemp: str
+    TrackAirPressure: str
+    TrackAirDensity: str
+    TrackWindVel: str
+    TrackWindDir: str
+    TrackRelativeHumidity: str
+    TrackFogLevel: str
+    TrackPrecipitation: str
+    TrackCleanup: int
+    TrackDynamicTrack: int
+    TrackVersion: str
+    SeriesID: int
+    SeasonID: int
+    SessionID: int
+    SubSessionID: int
+    LeagueID: int
+    Official: int
+    RaceWeek: int
+    EventType: str
+    Category: str
+    SimMode: str
+    TeamRacing: int
+    MinDrivers: int
+    MaxDrivers: int
+    DCRuleSet: str
+    QualifierMustStartRace: int
+    NumCarClasses: int
+    NumCarTypes: int
+    AIRosterName: str
+    HeatRacing: int
+    BuildType: str
+    BuildTarget: str
+    BuildVersion: str
+    RaceFarm: Optional[str]
+    WeekendOptions: WeekendOptions
+    TelemetryOptions: TelemetryOptions
+

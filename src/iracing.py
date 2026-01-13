@@ -3,6 +3,8 @@ import time
 import decoders
 from enum import Enum
 
+from .camera import CameraManager
+
 # Playback speed enum for IBT file playback
 class PlaybackSpeed(Enum):
     SLOW = 0.25
@@ -217,7 +219,11 @@ class State:
     def __init__(self):
         self.ir_connected = False
         self.last_car_setup_tick = -1
+
+        self.camera_manager: CameraManager | None = None
+
         self.camera = None
+        self.last_camera = None
 
     # here we check if we are connected to iracing
     # so we can retrieve some data
@@ -236,12 +242,25 @@ class State:
         self.ir_connected = ir.connected;
         # print(f'irsdk connected: {self.ir_connected}')
 
-    def check_camera(self, ir: TelemetryHandler):
-        self.camera = ir['CamGroupNumber']
+    def current_camera(self, ir: TelemetryHandler):
+        """
+        Returns the currently active camera group name
+        when connected to iRacing.  For replay files, returns 'Replay File'
+        """
+
+        if isinstance(ir, FileTelemetryHandler):
+            # Not used for replays
+            return 'Replay File'
+        
+        if not self.camera_manager:
+            self.camera_manager = CameraManager(ir)
+
+        self.camera = self.camera_manager.current_camera
 
         if not self.camera:
-            # No Camera Group - Probably a replay
-            pass
+            return 'Unknown'
+
+        return self.camera.name
 
     def set_next_tick(self):
         self.next_tick = time.time() + 1

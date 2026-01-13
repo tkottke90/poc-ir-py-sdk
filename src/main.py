@@ -6,7 +6,6 @@ from event_trackers import pit_monitor
 from decoders.race_flags import decode_session_flags
 from iracing import State, TelemetryHandler, LiveTelemetryHandler, FileTelemetryHandler
 from logger import setup_logger
-from camera import selected_camera
 
 logger = setup_logger( console_output=False )
 debug = False
@@ -97,9 +96,7 @@ def loop(ir: TelemetryHandler, state: State):
     print(f'Playback: {ir.get_playback_display()}')
 
     # Check Camera
-    camera = selected_camera(ir)
-
-    print(f'Camera: {camera}')
+    print(f'Camera: {state.camera}')
 
     # on each tick we freeze buffer with live telemetry
     # it is optional, but useful if you use vars like CarIdxXXX
