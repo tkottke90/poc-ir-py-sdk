@@ -243,9 +243,5 @@ class State:
             # No Camera Group - Probably a replay
             pass
 
-        
-
-
-
     def set_next_tick(self):
         self.next_tick = time.time() + 1
