@@ -217,6 +217,7 @@ class State:
     def __init__(self):
         self.ir_connected = False
         self.last_car_setup_tick = -1
+        self.camera = None
 
     # here we check if we are connected to iracing
     # so we can retrieve some data
@@ -234,6 +235,16 @@ class State:
 
         self.ir_connected = ir.connected;
         # print(f'irsdk connected: {self.ir_connected}')
+
+    def check_camera(self, ir: TelemetryHandler):
+        self.camera = ir['CamGroupNumber']
+
+        if not self.camera:
+            # No Camera Group - Probably a replay
+            pass
+
+        
+
 
 
     def set_next_tick(self):

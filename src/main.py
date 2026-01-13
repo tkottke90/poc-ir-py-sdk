@@ -8,9 +8,13 @@ from event_trackers import pit_monitor
 from decoders.race_flags import decode_session_flags
 from iracing import State, TelemetryHandler, LiveTelemetryHandler, FileTelemetryHandler
 from logger import setup_logger
+from camera import get_cameras
 
 logger = setup_logger( console_output=False )
 debug = False
+
+lastCamera = None
+startTime = datetime.now()
 
 # function to clear the terminal screen
 def clear_screen():
@@ -55,12 +59,6 @@ def show_car_stats(ir: TelemetryHandler):
 def show_driver_stats(ir: TelemetryHandler):
     isOnTrack = ir['IsOnTrack']
     isInGarage = ir['IsInGarage']
-    
-    if not isInGarage or not isOnTrack:
-        print('')
-        print('== Player Stats [OFF TRACK] ==')
-
-        return
 
     print('')
     print('== Player Stats ==')
@@ -71,10 +69,15 @@ def show_driver_stats(ir: TelemetryHandler):
     lapCompleted = ir['LapCompleted']
     lapDist = ir['LapDistPct']
 
-    print(f'Lap Completed: {lapCompleted}')
+    print('')
+    print(f'On Track:      {isOnTrack}')
+    print(f'Lap Completed: {lapCompleted} (+{lapDist:.2f}%)')
+    
+    i = ir['PlayerCarMyIncidentCount']
+    iT = ir['PlayerCarDriverIncidentCount']
 
-    if lapDist > 0:
-        print(f'Lap Dist:      {lapDist:.2f}%')
+    print('')
+    print(f'Incidents:       {i} (Team: {iT})')
 
 
 # our main loop, where we retrieve data
@@ -94,6 +97,11 @@ def loop(ir: TelemetryHandler, state: State):
     print(f'Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
     print(f'Connected: {state.ir_connected} [Type: {ir.name}]')
     print(f'Playback: {ir.get_playback_display()}')
+
+    # Check Camera
+    cameras = get_cameras(ir)
+
+    print(f'Cameras: {cameras}')
 
     # on each tick we freeze buffer with live telemetry
     # it is optional, but useful if you use vars like CarIdxXXX
