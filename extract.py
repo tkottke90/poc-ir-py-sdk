@@ -8,7 +8,7 @@ if __name__ == '__main__':
   
   args = parser.parse_args()
 
-  ir = irsdk.IBT()
+  ir = irsdk.IRSDK()
   ir.open(args.file)
 
   weekend = ir['WeekendInfo']
