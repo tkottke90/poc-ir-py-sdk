@@ -2,6 +2,8 @@ import argparse
 from datetime import datetime
 import time
 import os
+import json
+from server import start_server
 from event_trackers import pit_monitor
 from iracing import State
 from models.telemetry import TelemetryHandler, FileTelemetryHandler, LiveTelemetryHandler
@@ -13,6 +15,21 @@ debug = False
 
 lastCamera = None
 startTime = datetime.now()
+
+# Helper function to send JSON responses
+def send_json_response(handler, data: dict, status_code: int = 200):
+    """Send JSON response"""
+    handler.send_response(status_code)
+    handler.send_header('Content-Type', 'application/json')
+    handler.send_header('Access-Control-Allow-Origin', '*')
+    handler.end_headers()
+    handler.wfile.write(json.dumps(data, indent=2).encode())
+
+
+def send_error_response(handler, message: str, status_code: int = 500):
+    """Send error response"""
+    send_json_response(handler, {'error': message}, status_code)
+
 
 # function to clear the terminal screen
 def clear_screen():
@@ -38,7 +55,8 @@ def show_session_stats(ir: TelemetryHandler):
     print(f'Lap:       {ir["Lap"]}')
     print(f'Race Laps: {ir["RaceLaps"]}')
 
-def show_car_stats(ir: TelemetryHandler):
+def show_car_stats(driverInfo: DriverInfo, ir: TelemetryHandler):
+    # State Boolean for car
     isOnTrack = ir['IsOnTrackCar']
     
     if not isOnTrack:
@@ -49,15 +67,21 @@ def show_car_stats(ir: TelemetryHandler):
     
     print('')
     print('== Car Stats ==')
+    i = ir['CarIdx']
     s = ir['CarIdxTrackSurface']
 
     print(f'Car Surface: {ir.decode_car_location(s)} ({s})')
 
-def show_driver_stats(ir: TelemetryHandler):
-    driver = DriverInfo.from_iracing(ir)
-
+def show_driver_stats(driver: DriverInfo, ir: TelemetryHandler):
+    # State boolean for player
     isOnTrack = ir['IsOnTrack']
-    isInGarage = ir['IsInGarage']
+
+    if not isOnTrack:
+        print('')
+        print('== Player Stats [OFF TRACK] ==')
+
+        return
+
 
     print('')
     print('== Player Stats ==')
@@ -85,20 +109,15 @@ def loop(ir: TelemetryHandler, state: State):
     # clear the screen at the start of each loop
     clear_screen()
     
-    # Get the next tick or session time
-    next_tick = ir.get_next_tick()
-
     # Write Console Header
     print('iRacing Telemetry Monitor')
     print('========================')
     print('')
     # Show Current Date/Time
+    print(f'Uptime: {datetime.now() - startTime}')
     print(f'Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
     print(f'Connected: {state.ir_connected} [Type: {ir.name}]')
     print(f'Playback: {ir.get_playback_display()}')
-
-    # Check Camera
-    print(f'Camera: {state.current_camera(ir)}')
 
     # on each tick we freeze buffer with live telemetry
     # it is optional, but useful if you use vars like CarIdxXXX
@@ -109,22 +128,36 @@ def loop(ir: TelemetryHandler, state: State):
     # and you will get incosistent data
     ir.freeze_var_buffer_latest()
 
-    # Camera Management
+    # == Driver Management ==
+    driver = state.drivers
 
+    # == Camera Management ==
+
+    ## Start by showing the camera in the header
+    print(f'Camera: {state.current_camera(ir)}')
     
+    ## Then we check if the target camera is on the player car
+    ## because this means the stream is watching the player
+    driverCarIdx = driver.CarIdx
+    camTargetIdx = state.current_camera_target(ir)
 
-    # retrieve live telemetry data
-    # check here for list of available variables
-    # https://github.com/kutu/pyirsdk/blob/master/vars.txt
-    # this is not full list, because some cars has additional
-    # specific variables, like break bias, wings adjustment, etc
+    if camTargetIdx == driverCarIdx:
+        print(f'Camera Target: Player/Team Car')
+        state.set_camera_by_driver(driver, ir)
+    else:
+        # If the camera is not on the player car, it is 
+        # likely that the broadcast is doing something and we do not
+        # want to interrupt that work.
+        print(f'Camera Target: Other Car')
+
+    # == Game Data Management ==
 
     if debug:
         show_session_stats(ir)
         
-        show_car_stats(ir)
+        show_car_stats(driver, ir)
         
-        show_driver_stats(ir)
+        show_driver_stats(driver, ir)
 
     # retrieve CarSetup from session data
     # we also check if CarSetup data has been updated
@@ -205,6 +238,76 @@ if __name__ == '__main__':
 
     logger.debug('Setup: Telemetry Handler Created', extra={'file': args.file})
 
+    # Define HTTP endpoint handlers as closures (they have access to ir and state)
+    def handle_root(handler):
+        """Handle root endpoint"""
+        send_json_response(handler, {
+            'service': 'iRacing Telemetry API',
+            'version': '1.0',
+            'endpoints': [
+                '/api/driver - Get current driver data',
+                '/api/camera - Get current camera info'
+            ]
+        })
+
+    def handle_driver(handler):
+        """Handle driver data endpoint"""
+        try:
+            if not state.ir_connected:
+                send_error_response(handler, 'Not connected to iRacing', 503)
+                return
+
+            # Freeze buffer for consistent data
+            ir.freeze_var_buffer_latest()
+
+            # Get driver info
+            driver = state.drivers
+
+            # Build response
+            response = {
+                'driver_name': driver.UserName,
+                'driver_number': driver.CarNumber,
+                'driver_license': driver.LicString,
+                'driver_irating': driver.IRating,
+                'driver_incidents': ir['PlayerCarMyIncidentCount'],
+                'team_incidents': ir['PlayerCarDriverIncidentCount'],
+                'driver_laps': ir['LapCompleted'],
+                'total_laps': ir['RaceLaps'],
+                'timestamp': datetime.now().isoformat()
+            }
+
+            send_json_response(handler, response)
+
+        except Exception as e:
+            logger.error(f'Error in driver endpoint: {e}')
+            send_error_response(handler, str(e))
+
+    def handle_camera(handler):
+        """Handle camera info endpoint"""
+        try:
+            if not state.ir_connected:
+                send_error_response(handler, 'Not connected to iRacing', 503)
+                return
+
+            response = {
+                'current_camera': state.current_camera(ir),
+                'camera_target': state.current_camera_target(ir),
+                'timestamp': datetime.now().isoformat()
+            }
+
+            send_json_response(handler, response)
+
+        except Exception as e:
+            logger.error(f'Error in camera endpoint: {e}')
+            send_error_response(handler, str(e))
+
+    # Start HTTP Server with endpoint handlers
+    http_server = start_server({
+        '/': handle_root,
+        '/api/driver': handle_driver,
+        '/api/camera': handle_camera
+    }, port=9000)
+
     try:
         retry = 0
 
@@ -239,12 +342,16 @@ if __name__ == '__main__':
         # press ctrl+c to exit
         print('User Triggered Shutdown....')
         pass
-    
+
     except Exception as e:
         # catch any other exceptions
         print(f'Error: {e}')
         print('Unexpected Error, Shutting Down....')
-    
+
     finally:
+        # shutting down HTTP server
+        print('Shutting down HTTP server...')
+        http_server.shutdown()
+
         # shutting down ir library
         ir.disconnect()

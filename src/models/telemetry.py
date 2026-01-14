@@ -6,6 +6,8 @@ from enum import Enum
 class TelemetryHandler:
     name = 'Base'
 
+    source: IRSDK | IBT | None = None
+
     def __init__(self):
         self.connected = False
 
@@ -84,6 +86,7 @@ class LiveTelemetryHandler(TelemetryHandler):
     def __init__(self):
         super().__init__()
         self.ir = IRSDK()
+        self.source = self.ir
 
     def connect(self):
         self.ir.startup()
@@ -130,6 +133,7 @@ class FileTelemetryHandler(TelemetryHandler):
     def __init__(self, file_path, playback_speed='normal', skip_to=0.0):
         super().__init__()
         self.ibt = IBT()
+        self.source = self.ibt
         self.file_path = file_path
 
         # Convert string to PlaybackSpeed enum if needed
