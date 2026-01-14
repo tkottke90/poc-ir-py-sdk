@@ -1,5 +1,5 @@
 import json
-from iracing import TelemetryHandler, FileTelemetryHandler
+from models.telemetry import TelemetryHandler, FileTelemetryHandler
 
 class iRacingCamera:
     def __init__(self, id: int, name: str):
@@ -52,6 +52,15 @@ class CameraManager:
             json.dump(output, f, indent=4)
 
         pass
+
+    def find_group(self, name=None, id=None) -> iRacingCameraGroup | None:
+        if name:
+            return next((cam for cam in self.cameras if cam.name == name), None)
+        
+        if id:
+            return next((cam for cam in self.cameras if cam.id == id), None)
+        
+        return None
 
     def refresh(self, ir: TelemetryHandler):
         if self.isNotUsed:

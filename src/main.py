@@ -3,9 +3,10 @@ from datetime import datetime
 import time
 import os
 from event_trackers import pit_monitor
-from decoders.race_flags import decode_session_flags
-from iracing import State, TelemetryHandler, LiveTelemetryHandler, FileTelemetryHandler
+from iracing import State
+from models.telemetry import TelemetryHandler, FileTelemetryHandler, LiveTelemetryHandler
 from logger import setup_logger
+from models.driver_info import DriverInfo
 
 logger = setup_logger( console_output=False )
 debug = False
@@ -31,7 +32,7 @@ def show_session_stats(ir: TelemetryHandler):
     s = ir['SessionState']
 
     print(f'Session State: {ir.decode_session_state(s)} ({s})')
-    print(f'Session Time:  {t}')
+    print(f'Session Time:  {t:.4f}')
     print(f'Session Flags: {ir.decode_session_flags(f)} ({f})')
     print('')
     print(f'Lap:       {ir["Lap"]}')
@@ -49,11 +50,12 @@ def show_car_stats(ir: TelemetryHandler):
     print('')
     print('== Car Stats ==')
     s = ir['CarIdxTrackSurface']
-    pits = pit_monitor.getPitStatus(ir)
 
     print(f'Car Surface: {ir.decode_car_location(s)} ({s})')
 
 def show_driver_stats(ir: TelemetryHandler):
+    driver = DriverInfo.from_iracing(ir)
+
     isOnTrack = ir['IsOnTrack']
     isInGarage = ir['IsInGarage']
 
@@ -96,7 +98,7 @@ def loop(ir: TelemetryHandler, state: State):
     print(f'Playback: {ir.get_playback_display()}')
 
     # Check Camera
-    print(f'Camera: {state.camera}')
+    print(f'Camera: {state.current_camera(ir)}')
 
     # on each tick we freeze buffer with live telemetry
     # it is optional, but useful if you use vars like CarIdxXXX
@@ -106,6 +108,10 @@ def loop(ir: TelemetryHandler, state: State):
     # to the next iracing internal tick_count
     # and you will get incosistent data
     ir.freeze_var_buffer_latest()
+
+    # Camera Management
+
+    
 
     # retrieve live telemetry data
     # check here for list of available variables

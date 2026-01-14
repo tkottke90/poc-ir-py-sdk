@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Union
+from .telemetry import TelemetryHandler
 
 
 class Driver(BaseModel):
@@ -63,5 +64,17 @@ class DriverInfo(Driver):
     as well as a list of the drivers in the session
     """
 
-    Drivers: list[Driver]
+    Drivers: list[Driver] = Field(default_factory=list, description='List of drivers in the session')
 
+    @staticmethod
+    def from_iracing(ir: TelemetryHandler):
+        if (ir['DriverInfo'] is None):
+            return DriverInfo(Drivers=[])
+
+        return DriverInfo(**ir['DriverInfo'])
+    
+    def get_driver(self, idx: int) -> Driver | None:
+        return next((d for d in self.Drivers if d.CarIdx == idx), None)
+    
+    def driver_list(self) -> tuple[int, str]:
+        return [(d.CarIdx, d.CarScreenName) for d in self.Drivers]
