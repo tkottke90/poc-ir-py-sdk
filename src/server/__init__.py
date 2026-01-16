@@ -8,6 +8,7 @@ from server.root import handle_root
 from server.driver import handle_driver
 from server.camera import handle_camera
 from server.dashboard import handle_dashboard
+from server.diagnostics import handle_diagnostics
 
 __all__ = [
     'ServerContext',
@@ -15,5 +16,6 @@ __all__ = [
     'handle_root',
     'handle_driver',
     'handle_camera',
-    'handle_dashboard'
+    'handle_dashboard',
+    'handle_diagnostics'
 ]

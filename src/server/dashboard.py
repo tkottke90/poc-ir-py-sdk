@@ -231,7 +231,7 @@ def handle_dashboard(handler, ctx: ServerContext):
         
         <div class="footer">
             <p>Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-            <p style="margin-top: 10px;">API Endpoints: <a href="/api" style="color: white;">/api</a> | <a href="/api/driver" style="color: white;">/api/driver</a> | <a href="/api/camera" style="color: white;">/api/camera</a></p>
+            <p style="margin-top: 10px;">API Endpoints: <a href="/api" style="color: white;">/api</a> | <a href="/api/diagnostics" style="color: white;">/api/diagnostics</a> | <a href="/api/driver" style="color: white;">/api/driver</a> | <a href="/api/camera" style="color: white;">/api/camera</a></p>
         </div>
     </div>
     

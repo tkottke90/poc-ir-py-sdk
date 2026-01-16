@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Union
 from .telemetry import TelemetryHandler
 from irsdk import TrkLoc
@@ -9,6 +9,15 @@ class Driver(BaseModel):
     The Driver model provides details about a specific driver in the current
     iRacing session.
     """
+
+    model_config = ConfigDict(
+        # Allow serialization to dict/json
+        use_enum_values=True,
+        # Validate on assignment
+        validate_assignment=True,
+        # Allow arbitrary types (for TelemetryHandler in methods)
+        arbitrary_types_allowed=True
+    )
 
     CarIdx: int = Field(description='Car index', default=-1)
     UserName: str = Field(description='User Display Name', default='Unknown')
@@ -81,15 +90,23 @@ class Driver(BaseModel):
 
         if self.TeamID != 0:
             nameLine += f" ({self.TeamName})"
-        
+
         carLine = f"  {self.CarScreenName} ({self.CarClassShortName})"
         ratingLine = f"  {self.IRating} ({self.LicString})"
-        
+
         return f"""
         {nameLine}
         {carLine}
         {ratingLine}
         """
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON serialization"""
+        return self.model_dump()
+
+    def to_json(self) -> str:
+        """Convert to JSON string"""
+        return self.model_dump_json()
 
 
 class DriverInfo(Driver):
@@ -106,10 +123,32 @@ class DriverInfo(Driver):
         if (ir['DriverInfo'] is None):
             return DriverInfo()
 
-        return DriverInfo(**ir['DriverInfo'])
+        data = ir['DriverInfo']
+
+        playerIdx = data['DriverCarIdx']
+        # Convert to list to avoid generator exhaustion
+        drivers = [Driver(**d) for d in ir['DriverInfo']['Drivers']]
+        player = next((d for d in drivers if d.is_player(playerIdx)), None)
+
+        if player is None:
+            # If no player found, return default DriverInfo
+            return DriverInfo(Drivers=drivers)
+
+        return DriverInfo(
+            **player.model_dump(),
+            Drivers=drivers
+        )
     
     def get_driver(self, idx: int) -> Driver | None:
         return next((d for d in self.Drivers if d.CarIdx == idx), None)
     
     def driver_list(self) -> tuple[int, str]:
         return [(d.CarIdx, d.CarScreenName) for d in self.Drivers]
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON serialization"""
+        return self.model_dump()
+
+    def to_json(self) -> str:
+        """Convert to JSON string"""
+        return self.model_dump_json()
