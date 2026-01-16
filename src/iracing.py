@@ -40,7 +40,9 @@ class State:
         if not self.ir_connected:
             ir.connect()
 
-        self.ir_connected = ir.connected;
+        self.ir_connected = ir.connected
+
+    def check_drivers(self, ir: TelemetryHandler):
         self.drivers = DriverInfo.from_iracing(ir)
 
     def current_camera(self, ir: TelemetryHandler):

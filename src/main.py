@@ -256,6 +256,9 @@ if __name__ == '__main__':
             state.check_iracing(ir)
             # if we are, then process data
             if state.ir_connected:
+                # Check drivers to start
+                state.check_drivers(ir)
+
                 # Reset retry
                 retry = 0
 
