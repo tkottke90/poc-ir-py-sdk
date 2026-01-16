@@ -9,7 +9,8 @@ def handle_root(handler, ctx: ServerContext):
         'service': 'iRacing Telemetry API',
         'version': '1.0',
         'endpoints': [
-            '/api/driver - Get current driver data',
-            '/api/camera - Get current camera info'
+            '/dashboard - HTML dashboard with live telemetry data',
+            '/api/driver - Get current driver data (JSON)',
+            '/api/camera - Get current camera info (JSON)'
         ]
     })
