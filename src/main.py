@@ -2,33 +2,18 @@ import argparse
 from datetime import datetime
 import time
 import os
-import json
-from server import start_server
+from server import ServerContext, start_server, handle_root, handle_driver, handle_camera
 from event_trackers import pit_monitor
 from iracing import State
 from models.telemetry import TelemetryHandler, FileTelemetryHandler, LiveTelemetryHandler
 from logger import setup_logger
 from models.driver_info import DriverInfo
 
-logger = setup_logger( console_output=False )
+logger = setup_logger(console_output=False)
 debug = False
 
 lastCamera = None
 startTime = datetime.now()
-
-# Helper function to send JSON responses
-def send_json_response(handler, data: dict, status_code: int = 200):
-    """Send JSON response"""
-    handler.send_response(status_code)
-    handler.send_header('Content-Type', 'application/json')
-    handler.send_header('Access-Control-Allow-Origin', '*')
-    handler.end_headers()
-    handler.wfile.write(json.dumps(data, indent=2).encode())
-
-
-def send_error_response(handler, message: str, status_code: int = 500):
-    """Send error response"""
-    send_json_response(handler, {'error': message}, status_code)
 
 
 # function to clear the terminal screen
@@ -148,7 +133,7 @@ def loop(ir: TelemetryHandler, state: State):
         # If the camera is not on the player car, it is 
         # likely that the broadcast is doing something and we do not
         # want to interrupt that work.
-        print(f'Camera Target: Other Car')
+        print(f'Camera Target: Other Car (Camera: {camTargetIdx}) | Player: {driverCarIdx})')
 
     # == Game Data Management ==
 
@@ -238,75 +223,26 @@ if __name__ == '__main__':
 
     logger.debug('Setup: Telemetry Handler Created', extra={'file': args.file})
 
-    # Define HTTP endpoint handlers as closures (they have access to ir and state)
-    def handle_root(handler):
-        """Handle root endpoint"""
-        send_json_response(handler, {
-            'service': 'iRacing Telemetry API',
-            'version': '1.0',
-            'endpoints': [
-                '/api/driver - Get current driver data',
-                '/api/camera - Get current camera info'
-            ]
-        })
+    # Create API logger for HTTP endpoints
+    api_logger = setup_logger('iracing.api', console_output=False)
 
-    def handle_driver(handler):
-        """Handle driver data endpoint"""
-        try:
-            if not state.ir_connected:
-                send_error_response(handler, 'Not connected to iRacing', 503)
-                return
+    # Create server context with dependencies
+    context = ServerContext(
+        get_ir=lambda: ir,
+        get_state=lambda: state,
+        logger=api_logger
+    )
 
-            # Freeze buffer for consistent data
-            ir.freeze_var_buffer_latest()
-
-            # Get driver info
-            driver = state.drivers
-
-            # Build response
-            response = {
-                'driver_name': driver.UserName,
-                'driver_number': driver.CarNumber,
-                'driver_license': driver.LicString,
-                'driver_irating': driver.IRating,
-                'driver_incidents': ir['PlayerCarMyIncidentCount'],
-                'team_incidents': ir['PlayerCarDriverIncidentCount'],
-                'driver_laps': ir['LapCompleted'],
-                'total_laps': ir['RaceLaps'],
-                'timestamp': datetime.now().isoformat()
-            }
-
-            send_json_response(handler, response)
-
-        except Exception as e:
-            logger.error(f'Error in driver endpoint: {e}')
-            send_error_response(handler, str(e))
-
-    def handle_camera(handler):
-        """Handle camera info endpoint"""
-        try:
-            if not state.ir_connected:
-                send_error_response(handler, 'Not connected to iRacing', 503)
-                return
-
-            response = {
-                'current_camera': state.current_camera(ir),
-                'camera_target': state.current_camera_target(ir),
-                'timestamp': datetime.now().isoformat()
-            }
-
-            send_json_response(handler, response)
-
-        except Exception as e:
-            logger.error(f'Error in camera endpoint: {e}')
-            send_error_response(handler, str(e))
-
-    # Start HTTP Server with endpoint handlers
-    http_server = start_server({
-        '/': handle_root,
-        '/api/driver': handle_driver,
-        '/api/camera': handle_camera
-    }, port=9000)
+    # Start HTTP Server with context
+    http_server = start_server(
+        endpoints={
+            '/': handle_root,
+            '/api/driver': handle_driver,
+            '/api/camera': handle_camera
+        },
+        context=context,
+        port=9000
+    )
 
     try:
         retry = 0

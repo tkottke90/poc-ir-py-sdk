@@ -16,10 +16,10 @@ class iRacingCameraGroup:
         self.cameras.append(camera)
 
     def from_config(config: dict):
-        group = iRacingCameraGroup(config['id'], config['name'])
+        group = iRacingCameraGroup(config['GroupNum'], config['GroupName'])
 
-        for camera in config['cameras']:
-            group.add_camera(iRacingCamera(camera['id'], camera['name']))
+        for camera in config['Cameras']:
+            group.add_camera(iRacingCamera(camera['CameraNum'], camera['CameraName']))
         
         return group
 
@@ -73,7 +73,13 @@ class CameraManager:
       if isinstance(ir, FileTelemetryHandler):
           return []
 
-      return iRacingCameraGroup.from_config(ir['CameraInfo'])
+      camInfo = ir['CameraInfo']
+
+      groups: list[iRacingCameraGroup] = []
+      for group in camInfo['Groups']:
+          groups.append(iRacingCameraGroup.from_config(group))
+
+      return groups
     
     def __selected_camera(self, ir: TelemetryHandler) -> iRacingCameraGroup | None:
       if isinstance(ir, FileTelemetryHandler):

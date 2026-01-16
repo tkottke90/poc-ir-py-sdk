@@ -76,6 +76,19 @@ class State:
         return ir['CamCarIdx']
 
     def set_camera_by_driver(self, driver: DriverInfo,ir: TelemetryHandler):
+        """
+        Docstring for set_camera_by_driver
+        
+        :param self: Description
+        :param driver: Description
+        :type driver: DriverInfo
+        :param ir: Description
+        :type ir: TelemetryHandler
+
+        :returns: True if the camera was changed, False otherwise
+        :rtype: bool
+        """
+        
         if not isinstance(ir.source, LiveTelemetryHandler):
             return # Not used for replays
 
@@ -91,7 +104,7 @@ class State:
             # return to it after the pit stop
             self.last_camera = current_camera
             ir.cam_switch_pos(0, 1)
-            return
+            return True
         
         # Next the driver will go to the pit stall.  Here we will want to switch
         # to a pit stall camera to show a closeup
@@ -99,7 +112,7 @@ class State:
             # Switch to Pit Stall
             self.driver_in_stall = True
             ir.cam_switch_pos(0, 1)
-            return
+            return True
 
         # After the pit stop is complete, we will want to go to the pit exit camera
         # to show the driver exiting the pits.  The drivers state goes from inPitStall back
@@ -108,7 +121,7 @@ class State:
             # Switch to Pit Exit
             self.driver_exit_pits = True
             ir.cam_switch_pos(0, 1)
-            return
+            return True
 
         # Once the driver is back on track, we will want to return to the camera
         # that was active before the pit stop.
@@ -118,7 +131,9 @@ class State:
             self.driver_in_stall = False
             self.driver_exit_pits = False
             ir.cam_switch_pos(0, 1)
-            return
+            return True
+        
+        return False
 
     def set_next_tick(self):
         self.next_tick = time.time() + 1

@@ -1,0 +1,15 @@
+from .helpers import send_json_response
+from .context import ServerContext
+
+
+def handle_root(handler, ctx: ServerContext):
+    """Handle root endpoint"""
+    ctx.logger.debug('Root endpoint called')
+    send_json_response(handler, {
+        'service': 'iRacing Telemetry API',
+        'version': '1.0',
+        'endpoints': [
+            '/api/driver - Get current driver data',
+            '/api/camera - Get current camera info'
+        ]
+    })
