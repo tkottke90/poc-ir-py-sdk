@@ -117,7 +117,8 @@ def loop(ir: TelemetryHandler, state: State):
     driver = state.drivers
 
     # == Camera Management ==
-
+    
+    print('\n== Camera Management ==')
     ## Start by showing the camera in the header
     print(f'Camera: {state.current_camera(ir)}')
     
@@ -127,54 +128,23 @@ def loop(ir: TelemetryHandler, state: State):
     camTargetIdx = state.current_camera_target(ir)
 
     if camTargetIdx == driverCarIdx:
-        print(f'Camera Target: Player/Team Car')
+        print(f"Auto Camera: Yes")
+        debug and print(f'Camera Target: Player/Team Car')
         state.set_camera_by_driver(driver, ir)
     else:
         # If the camera is not on the player car, it is 
         # likely that the broadcast is doing something and we do not
         # want to interrupt that work.
-        print(f'Camera Target: Other Car (Camera: {camTargetIdx}) | Player: {driverCarIdx})')
+        print(f"Auto Camera: No")
+        debug and print(f'Camera Target: Other Car (Camera: {camTargetIdx}) | Player: {driverCarIdx})')
 
     # == Game Data Management ==
-
     if debug:
         show_session_stats(ir)
         
         show_car_stats(driver, ir)
         
         show_driver_stats(driver, ir)
-
-    # retrieve CarSetup from session data
-    # we also check if CarSetup data has been updated
-    # with ir.get_session_info_update_by_key(key)
-    # but first you need to request data, before checking if its updated
-    # car_setup = ir['CarSetup']
-    # logger.debug('Loop:', extra={'car_setup': car_setup})
-    # if car_setup:
-    #     car_setup_tick = ir.get_session_info_update_by_key('CarSetup')
-    #     if car_setup_tick != state.last_car_setup_tick:
-    #         state.last_car_setup_tick = car_setup_tick
-    #         print('car setup update count:', car_setup['UpdateCount'])
-            # now you can go to garage, and do some changes with your setup
-            # this line will be printed, only when you change something
-            # and press apply button, but not every 1 sec
-    # note about session info data
-    # you should always check if data exists first
-    # before do something like ir['WeekendInfo']['TeamRacing']
-    # so do like this:
-    # if ir['WeekendInfo']:
-    #   print(ir['WeekendInfo']['TeamRacing'])
-
-    # and just as an example
-    # you can send commands to iracing
-    # like switch cameras, rewind in replay mode, send chat and pit commands, etc
-    # check pyirsdk.py library to see what commands are available
-    # https://github.com/kutu/pyirsdk/blob/master/irsdk.py#L134 (class BroadcastMsg)
-    # when you run this script, camera will be switched to P1
-    # and very first camera in list of cameras in iracing
-    # while script is running, change camera by yourself in iracing
-    # and notice how this code changes it back every 1 sec
-    # ir.cam_switch_pos(0, 1)
 
 if __name__ == '__main__':
 
