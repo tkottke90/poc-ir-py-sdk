@@ -45,8 +45,15 @@ def handle_set_camera(handler, ctx: ServerContext):
             send_error_response(handler, 'camera_group_id must be an integer', 400)
             return
 
+        # Get the driver car number
+        driver = state.drivers.get_driver(ir['PlayerCarIdx'])
+
+        if driver is None:
+            send_error_response(handler, 'Driver not found', 404)
+            return
+
         # Call set_camera method
-        result = state.set_camera(camera_group_id, ir)
+        result = state.set_camera(driver.car_number_int(), camera_group_id, ir)
 
         response = {
             'success': result,

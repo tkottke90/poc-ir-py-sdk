@@ -92,7 +92,7 @@ class State:
 
         return [{'id': group.id, 'name': group.name} for group in self.camera_manager.cameras]
 
-    def set_camera_by_driver(self, driver: DriverInfo,ir: TelemetryHandler):
+    def set_camera_by_driver(self, driver: DriverInfo ,ir: TelemetryHandler):
         """
         Docstring for set_camera_by_driver
         
@@ -120,7 +120,7 @@ class State:
             # Save the camera we were using before the pit stop so we can
             # return to it after the pit stop
             self.last_camera = current_camera
-            ir.source.cam_switch_num(driver.CarNumber, 1)
+            ir.source.cam_switch_num(driver.car_number_int(), 16)
             return True
         
         # Next the driver will go to the pit stall.  Here we will want to switch
@@ -128,7 +128,7 @@ class State:
         if driver.driver_in_pit_stall(ir) and self.driver_in_pits and not self.driver_in_stall:
             # Switch to Pit Stall
             self.driver_in_stall = True
-            ir.source.cam_switch_num(driver.CarNumber, 1)
+            ir.source.cam_switch_num(driver.car_number_int(), 21)
             return True
 
         # After the pit stop is complete, we will want to go to the pit exit camera
@@ -137,7 +137,8 @@ class State:
         if self.driver_in_pits and self.driver_in_stall and not driver.driver_in_pit_stall(ir):
             # Switch to Pit Exit
             self.driver_exit_pits = True
-            ir.source.cam_switch_num(driver.CarNumber, 1)
+            
+            self.set_camera(driver.car_number_int(), 14, ir)
             return True
 
         # Once the driver is back on track, we will want to return to the camera
@@ -147,18 +148,16 @@ class State:
             self.driver_in_pits = False
             self.driver_in_stall = False
             self.driver_exit_pits = False
-            ir.source.cam_switch_num(driver.CarNumber, 1)
+            ir.source.cam_switch_num(driver.car_number_int(), 1)
             return True
         
         return False
 
-    def set_camera(self, cameraId: int, ir: TelemetryHandler):
+    def set_camera(self, carNumber: int, cameraId: int, ir: TelemetryHandler):
         if not isinstance(ir, LiveTelemetryHandler):
-            return # Not used for replays
+            return False # Not used for replays
         
-        driverCarIdx = ir['PlayerCarNumber']
-
-        ir.source.cam_switch_num(driverCarIdx, cameraId)
+        ir.source.cam_switch_num(carNumber, cameraId)
         return True
 
     def set_next_tick(self):

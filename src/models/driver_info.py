@@ -145,6 +145,12 @@ class DriverInfo(Driver):
     def driver_list(self) -> tuple[int, str]:
         return [(d.CarIdx, d.CarScreenName) for d in self.Drivers]
 
+    def car_number_int(self) -> int:
+        try:
+            return int(self.CarNumber)
+        except ValueError:
+            return 1
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization"""
         return self.model_dump()
