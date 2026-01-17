@@ -61,7 +61,8 @@ def handle_driver_overlay_view(handler, ctx: ServerContext):
         padding: 0.25rem 0.5rem;
 
         color: var(--license-color);
-        border: 1px solid currentColor;
+        border: 2px solid currentColor;
+        border-radius: 0.5rem;
         background-color: var(--license-bg);
       }}
 
