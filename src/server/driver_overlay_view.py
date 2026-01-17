@@ -45,6 +45,10 @@ def handle_driver_overlay_view(handler, ctx: ServerContext):
     <title>Driver Overlay</title>
     <link rel="stylesheet" href="./overlay.css">
     <style>
+      :root {{
+        --license-color: {driver_license_color};
+        --license-bg: {driver_license_bg};
+      }}
 
       main {{
         font-size: 2rem;
@@ -56,17 +60,17 @@ def handle_driver_overlay_view(handler, ctx: ServerContext):
       .license {{
         padding: 0.25rem 0.5rem;
 
-        color: {driver_license_color};
+        color: var(--license-color);
         border: 1px solid currentColor;
-        background-color: {driver_license_bg};
+        background-color: var(--license-bg);
       }}
 
       #driver-stats-container {{
         position: relative;
-        
+
         min-height: 2em;
         width: 50%;
-        
+
         display: flex;
         justify-content: flex-end;
       }}
@@ -80,10 +84,10 @@ def handle_driver_overlay_view(handler, ctx: ServerContext):
         <span id="driver-name">{ driver_name }</span>
         <div id="driver-stats-container">
           <span class="driver-stat" data-stat="license">
-            { driver_irating } - <span class="license">{ driver_license }</span>
+            iR:{ driver_irating } - <span class="license">{ driver_license }</span>
           </span>
           <span class="driver-stat" data-stat="incidents">
-            Incidents: { driver_incidents } / { team_incidents }
+            Incidents: { driver_incidents } (Team: { team_incidents })
           </span>
         </div>
       </main>
@@ -103,6 +107,45 @@ def handle_driver_overlay_view(handler, ctx: ServerContext):
 
       // Start the animation
       animator.start();
+
+      // Fetch driver data from API and update the display
+      async function updateDriverData() {{
+        try {{
+          const response = await fetch('/api/driver');
+          if (!response.ok) {{
+            // Fail quietly - don't show errors on stream
+            return;
+          }}
+
+          const data = await response.json();
+
+          // Update driver name
+          const driverNameEl = document.getElementById('driver-name');
+          if (driverNameEl && data.driver_name) {{
+            driverNameEl.textContent = data.driver_name;
+          }}
+
+          // Update the stat elements content
+          const licenseStatEl = document.querySelector('[data-stat="license"]');
+          if (licenseStatEl && data.driver_irating && data.driver_license) {{
+            licenseStatEl.innerHTML = `iR:${{data.driver_irating}} - <span class="license">${{data.driver_license}}</span>`;
+          }}
+
+          const incidentsStatEl = document.querySelector('[data-stat="incidents"]');
+          if (incidentsStatEl && data.driver_incidents !== undefined && data.team_incidents !== undefined) {{
+            incidentsStatEl.textContent = `Incidents: ${{data.driver_incidents}} (Team: ${{data.team_incidents}})`;
+          }}
+        }} catch (error) {{
+          // Fail quietly - don't show errors on stream
+          console.error('Failed to fetch driver data:', error);
+        }}
+      }}
+
+      // Update immediately on load
+      updateDriverData();
+
+      // Update every 5 seconds
+      setInterval(updateDriverData, 5000);
     </script>
   </body>
 </html>

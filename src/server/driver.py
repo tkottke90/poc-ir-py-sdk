@@ -99,8 +99,8 @@ def handle_driver(handler, ctx: ServerContext):
             response = {
                 'driver': driver.to_dict(),
                 'telemetry': {
-                    'player_incidents': ir['PlayerCarMyIncidentCount'],
-                    'team_incidents': ir['PlayerCarDriverIncidentCount'],
+                    'player_incidents': ir['PlayerCarDriverIncidentCount'],
+                    'team_incidents': ir['PlayerCarTeamIncidentCount'],
                     'laps_completed': ir['LapCompleted'],
                     'total_laps': ir['RaceLaps'],
                 },
@@ -113,6 +113,7 @@ def handle_driver(handler, ctx: ServerContext):
                 'driver_team': driver.TeamName,
                 'driver_number': driver.CarNumber,
                 'driver_license': driver.LicString,
+                'driver_license_color': driver.lic_color_hex,
                 'driver_irating': driver.IRating,
                 'driver_incidents': ir['PlayerCarMyIncidentCount'],
                 'team_incidents': ir['PlayerCarDriverIncidentCount'],
