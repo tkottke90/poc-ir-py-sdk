@@ -115,8 +115,8 @@ def handle_driver(handler, ctx: ServerContext):
                 'driver_license': driver.LicString,
                 'driver_license_color': driver.lic_color_hex,
                 'driver_irating': driver.IRating,
-                'driver_incidents': ir['PlayerCarMyIncidentCount'],
-                'team_incidents': ir['PlayerCarDriverIncidentCount'],
+                'driver_incidents': ir['PlayerCarDriverIncidentCount'],
+                'team_incidents': ir['PlayerCarTeamIncidentCount'],
                 'driver_laps': ir['LapCompleted'],
                 'total_laps': ir['RaceLaps'],
                 'timestamp': datetime.now().isoformat()
