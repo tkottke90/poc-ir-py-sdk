@@ -26,6 +26,8 @@ class State:
         self.driver_in_stall = False
         self.driver_exit_pits = False
 
+        self.show_pit_cams = False
+
     # here we check if we are connected to iracing
     # so we can retrieve some data
     def check_iracing(self, ir: TelemetryHandler):
@@ -107,7 +109,10 @@ class State:
         """
         
         if not isinstance(ir, LiveTelemetryHandler):
-            return # Not used for replays
+            return False # Not used for replays
+        
+        if not self.show_pit_cams:
+            return False
 
         current_camera = self.current_camera(ir)
 
