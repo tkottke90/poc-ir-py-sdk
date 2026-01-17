@@ -236,10 +236,10 @@ if __name__ == '__main__':
 
                 # Loop over data
                 logger.debug('Loop: iRacing Connected')
-                # loop(
-                #   ir = ir,
-                #   state = state
-                # )
+                loop(
+                  ir = ir,
+                  state = state
+                )
             else:
                 logger.debug('Loop: iRacing Not Connected')
                 retry += 1
