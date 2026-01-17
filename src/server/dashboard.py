@@ -36,6 +36,10 @@ def handle_dashboard(handler, ctx: ServerContext):
 
             my_incidents = ir['PlayerCarMyIncidentCount']
 
+            # Pit repair times
+            pit_repair_left = ir['PitRepairLeft']
+            pit_opt_repair_left = ir['PitOptRepairLeft']
+
             status_color = "#4CAF50"
             status_text = "Connected"
         else:
@@ -53,6 +57,10 @@ def handle_dashboard(handler, ctx: ServerContext):
             show_pit_cams = False
 
             pitting = 'N/A'
+
+            # Pit repair times
+            pit_repair_left = "N/A"
+            pit_opt_repair_left = "N/A"
 
             status_color = "#f44336"
             status_text = "Not Connected"
@@ -351,6 +359,18 @@ def handle_dashboard(handler, ctx: ServerContext):
                         <input type="checkbox" id="pitCamsToggle" {"checked" if show_pit_cams else ""} onchange="togglePitCams()">
                         <span class="toggle-slider"></span>
                     </label>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔧 Pit Repairs</h2>
+                <div class="data-row">
+                    <span class="data-label">Mandatory Repair Time:</span>
+                    <span class="data-value">{pit_repair_left if pit_repair_left == "N/A" else f"{pit_repair_left:.1f}s"}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Optional Repair Time:</span>
+                    <span class="data-value">{pit_opt_repair_left if pit_opt_repair_left == "N/A" else f"{pit_opt_repair_left:.1f}s"}</span>
                 </div>
             </div>
         </div>
