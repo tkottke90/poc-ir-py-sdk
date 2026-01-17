@@ -144,14 +144,28 @@ def loop(ir: TelemetryHandler, state: State):
     print("\n== Game Data ==")
     print(f"Session: {ir['SessionNum']}\n")
 
+    
     print(f"Lap: {ir['LapCompleted']} / {ir['RaceLaps']}")
     print(f"Driver: {driver.UserName} ({driver.CarNumber})")
     print(f"Incidents:")
     print(f"  Me: {ir['PlayerCarMyIncidentCount']}")
-    print(f"  Team: {ir['PlayerCarDriverIncidentCount']}")
+    print(f"  Driver: {ir['PlayerCarDriverIncidentCount']}")
     print(f"  Team: {ir['PlayerCarTeamIncidentCount']}")
     print(f"  Incidents: {ir['PlayerIncidents']}")
     print(f"Participation: {ir['Precipitation']}")
+    print(f"Driver Change Laps: {ir['DCLapStatus']}")
+
+    print(f"Pits:")
+    print(f"  Open: {ir['PitsOpen']}")
+    print(f"  On Pit Road: {state.driver_in_pits}")
+    print(f"  Pitstop Active: {state.driver_in_stall}")
+    print(f"  Pitstop Exit: {state.driver_exit_pits}")
+
+    pitRepair = (ir['PitRepairLeft'] or 0) + (ir['PitOptRepairLeft'] or 0)
+
+    print(f"  Pit Repair: {pitRepair} (Optional: {ir['PitOptRepairLeft']})")
+    print(f"    Required: {ir['PitRepairLeft']}")
+    print(f"    Optional: {ir['PitOptRepairLeft']}")
 
     if debug:
         show_session_stats(ir)
