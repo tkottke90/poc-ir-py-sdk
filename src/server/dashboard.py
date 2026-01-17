@@ -40,6 +40,11 @@ def handle_dashboard(handler, ctx: ServerContext):
             pit_repair_left = ir['PitRepairLeft']
             pit_opt_repair_left = ir['PitOptRepairLeft']
 
+            # Fuel information
+            fuel_level = ir['FuelLevel']
+            fuel_level_pct = ir['FuelLevelPct']
+            pit_sv_fuel = ir['PitSvFuel']
+
             status_color = "#4CAF50"
             status_text = "Connected"
         else:
@@ -61,6 +66,11 @@ def handle_dashboard(handler, ctx: ServerContext):
             # Pit repair times
             pit_repair_left = "N/A"
             pit_opt_repair_left = "N/A"
+
+            # Fuel information
+            fuel_level = "N/A"
+            fuel_level_pct = "N/A"
+            pit_sv_fuel = "N/A"
 
             status_color = "#f44336"
             status_text = "Not Connected"
@@ -363,7 +373,7 @@ def handle_dashboard(handler, ctx: ServerContext):
             </div>
 
             <div class="card">
-                <h2>🔧 Pit Repairs</h2>
+                <h2>🔧 Pit Repairs & Fuel</h2>
                 <div class="data-row">
                     <span class="data-label">Mandatory Repair Time:</span>
                     <span class="data-value">{pit_repair_left if pit_repair_left == "N/A" else f"{pit_repair_left:.1f}s"}</span>
@@ -371,6 +381,14 @@ def handle_dashboard(handler, ctx: ServerContext):
                 <div class="data-row">
                     <span class="data-label">Optional Repair Time:</span>
                     <span class="data-value">{pit_opt_repair_left if pit_opt_repair_left == "N/A" else f"{pit_opt_repair_left:.1f}s"}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Current Fuel:</span>
+                    <span class="data-value">{fuel_level if fuel_level == "N/A" else f"{fuel_level:.2f}L ({fuel_level_pct:.1f}%)"}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Pit Service Fuel:</span>
+                    <span class="data-value">{pit_sv_fuel if pit_sv_fuel == "N/A" else f"{pit_sv_fuel:.2f}L"}</span>
                 </div>
             </div>
         </div>
