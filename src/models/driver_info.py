@@ -69,6 +69,12 @@ class Driver(BaseModel):
     def is_player(self, idx: int) -> bool:
         return self.CarIdx == idx
     
+    def car_number_int(self) -> int:
+        try:
+            return int(self.CarNumber)
+        except ValueError:
+            return 1
+
     def driver_location(self, ir: TelemetryHandler) -> str:
         return ir[f'CarIdxTrackSurface'][self.CarIdx]
 
@@ -144,12 +150,6 @@ class DriverInfo(Driver):
     
     def driver_list(self) -> tuple[int, str]:
         return [(d.CarIdx, d.CarScreenName) for d in self.Drivers]
-
-    def car_number_int(self) -> int:
-        try:
-            return int(self.CarNumber)
-        except ValueError:
-            return 1
 
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization"""
