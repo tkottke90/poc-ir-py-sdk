@@ -30,6 +30,7 @@ def handle_dashboard(handler, ctx: ServerContext):
             current_camera = state.current_camera(ir)
             camera_target = state.current_camera_target(ir)
             camera_groups = state.camera_groups(ir)
+            show_pit_cams = state.show_pit_cams
 
             pitting =  'Yes' if state.driver_in_pits else 'No'
 
@@ -47,6 +48,7 @@ def handle_dashboard(handler, ctx: ServerContext):
             current_camera = "N/A"
             camera_target = "N/A"
             camera_groups = []
+            show_pit_cams = False
 
             pitting = 'N/A'
 
@@ -212,6 +214,59 @@ def handle_dashboard(handler, ctx: ServerContext):
             cursor: not-allowed;
             transform: none;
         }}
+
+        .toggle-container {{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }}
+
+        .toggle-switch {{
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }}
+
+        .toggle-switch input {{
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }}
+
+        .toggle-slider {{
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }}
+
+        .toggle-slider:before {{
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }}
+
+        input:checked + .toggle-slider {{
+            background-color: #4CAF50;
+        }}
+
+        input:checked + .toggle-slider:before {{
+            transform: translateX(26px);
+        }}
     </style>
 </head>
 <body>
@@ -277,6 +332,13 @@ def handle_dashboard(handler, ctx: ServerContext):
                     <span class="data-label">Pitting:</span>
                     <span class="data-value">{pitting}</span>
                 </div>
+                <div class="toggle-container">
+                    <span class="data-label">Auto Pit Cameras:</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="pitCamsToggle" {"checked" if show_pit_cams else ""} onchange="togglePitCams()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -321,6 +383,31 @@ def handle_dashboard(handler, ctx: ServerContext):
             }} catch (error) {{
                 console.error('Error switching camera:', error);
                 alert('Error switching camera: ' + error.message);
+            }}
+        }}
+
+        // Function to toggle pit cams
+        async function togglePitCams() {{
+            try {{
+                const response = await fetch('/api/camera/toggle-pit-cams', {{
+                    method: 'POST',
+                    headers: {{
+                        'Content-Type': 'application/json',
+                    }}
+                }});
+
+                const data = await response.json();
+
+                if (data.show_pit_cams !== undefined) {{
+                    // Update checkbox state
+                    document.getElementById('pitCamsToggle').checked = data.show_pit_cams;
+                    console.log('Pit cams toggled to:', data.show_pit_cams);
+                }} else {{
+                    alert('Failed to toggle pit cams');
+                }}
+            }} catch (error) {{
+                console.error('Error toggling pit cams:', error);
+                alert('Error toggling pit cams: ' + error.message);
             }}
         }}
     </script>

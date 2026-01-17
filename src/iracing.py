@@ -161,9 +161,19 @@ class State:
     def set_camera(self, carNumber: int, cameraId: int, ir: TelemetryHandler):
         if not isinstance(ir, LiveTelemetryHandler):
             return False # Not used for replays
-        
+
         ir.source.cam_switch_num(carNumber, cameraId)
         return True
+
+    def toggle_pit_cams(self):
+        """
+        Toggles the show_pit_cams flag and returns the new state.
+
+        :returns: The new state of show_pit_cams
+        :rtype: bool
+        """
+        self.show_pit_cams = not self.show_pit_cams
+        return self.show_pit_cams
 
     def set_next_tick(self):
         self.next_tick = time.time() + 1
