@@ -23,8 +23,8 @@ def handle_dashboard(handler, ctx: ServerContext):
             driver_number = driver.CarNumber
             driver_license = driver.LicString
             driver_irating = driver.IRating
-            driver_incidents = ir['PlayerCarMyIncidentCount']
-            team_incidents = ir['PlayerCarDriverIncidentCount']
+            driver_incidents = ir['PlayerCarDriverIncidentCount']
+            team_incidents = ir['PlayerCarTeamIncidentCount']
             driver_laps = ir['LapCompleted']
             total_laps = ir['RaceLaps']
             current_camera = state.current_camera(ir)
