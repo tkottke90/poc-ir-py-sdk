@@ -127,10 +127,13 @@ def loop(ir: TelemetryHandler, state: State):
     driverCarIdx = ir['PlayerCarIdx']
     camTargetIdx = ir['CamCarIdx']
 
+
     if camTargetIdx == driverCarIdx:
+        player = driver.get_driver(driverCarIdx)
+        
         print(f"Auto Camera: Yes")
-        debug and print(f'Camera Target: Player/Team Car')
-        state.set_camera_by_driver(driver, ir)
+        debug and print(f'Camera Target: Player/Team Car ({driverCarIdx} | {player.CarNumber})')
+        state.set_camera_by_driver(player, ir)
     else:
         # If the camera is not on the player car, it is 
         # likely that the broadcast is doing something and we do not
