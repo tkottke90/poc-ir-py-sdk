@@ -124,8 +124,8 @@ def loop(ir: TelemetryHandler, state: State):
     
     ## Then we check if the target camera is on the player car
     ## because this means the stream is watching the player
-    driverCarIdx = driver.CarIdx
-    camTargetIdx = state.current_camera_target(ir)
+    driverCarIdx = ir['PlayerCarIdx']
+    camTargetIdx = ir['CamCarIdx']
 
     if camTargetIdx == driverCarIdx:
         print(f"Auto Camera: Yes")

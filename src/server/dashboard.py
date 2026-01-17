@@ -30,7 +30,7 @@ def handle_dashboard(handler, ctx: ServerContext):
             current_camera = state.current_camera(ir)
             camera_target = state.current_camera_target(ir)
 
-            pitting = state.driver_in_pits and 'Yes' or 'No'
+            pitting =  'Yes' if state.driver_in_pits else 'No'
             
             status_color = "#4CAF50"
             status_text = "Connected"
