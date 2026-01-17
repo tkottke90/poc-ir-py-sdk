@@ -12,7 +12,8 @@ def handle_root(handler, ctx: ServerContext):
             '/ - HTML dashboard with live telemetry data',
             '/api - This endpoint (API information)',
             '/api/driver - Get current driver data (JSON)',
-            '/api/camera - Get current camera info (JSON)',
+            '/api/camera - Get current camera info with available camera groups (JSON)',
+            '/api/camera/set - Set camera group by ID (POST with camera_group_id)',
             '/api/diagnostics - Server diagnostics and context validation (JSON)'
         ]
     })

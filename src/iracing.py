@@ -74,8 +74,23 @@ class State:
         if isinstance(ir, FileTelemetryHandler):
             # Not used for replays
             return 'Replay File'
-        
+
         return self.camera_manager.current_camera.id
+
+    def camera_groups(self, ir: TelemetryHandler):
+        """
+        Returns an array of available camera groups with their name and id.
+        For replay files, returns an empty array.
+        """
+
+        if isinstance(ir, FileTelemetryHandler):
+            # Not used for replays
+            return []
+
+        if not self.camera_manager:
+            self.camera_manager = CameraManager(ir)
+
+        return [{'id': group.id, 'name': group.name} for group in self.camera_manager.cameras]
 
     def set_camera_by_driver(self, driver: DriverInfo,ir: TelemetryHandler):
         """
@@ -110,7 +125,7 @@ class State:
         
         # Next the driver will go to the pit stall.  Here we will want to switch
         # to a pit stall camera to show a closeup
-        if driver.driver_in_pit_stall(ir) and not self.driver_in_stall:
+        if driver.driver_in_pit_stall(ir) and self.driver_in_pits and not self.driver_in_stall:
             # Switch to Pit Stall
             self.driver_in_stall = True
             ir.cam_switch_pos(0, 1)
@@ -119,7 +134,7 @@ class State:
         # After the pit stop is complete, we will want to go to the pit exit camera
         # to show the driver exiting the pits.  The drivers state goes from inPitStall back
         # to onPitRoad so we can detect this change in state.
-        if driver.driver_on_pit_road(ir) and self.driver_in_stall and not self.driver_exit_pits:
+        if self.driver_in_pits and self.driver_in_stall and not driver.driver_in_pit_stall(ir):
             # Switch to Pit Exit
             self.driver_exit_pits = True
             ir.cam_switch_pos(0, 1)
@@ -136,6 +151,13 @@ class State:
             return True
         
         return False
+
+    def set_camera(self, cameraId: int, ir: TelemetryHandler):
+        if not isinstance(ir.source, LiveTelemetryHandler):
+            return # Not used for replays
+        
+        ir.cam_switch_pos(0, cameraId)
+        return True
 
     def set_next_tick(self):
         self.next_tick = time.time() + 1

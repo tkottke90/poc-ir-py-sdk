@@ -18,7 +18,7 @@ def handle_dashboard(handler, ctx: ServerContext):
         if is_connected:
             ir.freeze_var_buffer_latest()
             driver = state.drivers
-            
+
             driver_name = driver.UserName
             driver_number = driver.CarNumber
             driver_license = driver.LicString
@@ -29,9 +29,10 @@ def handle_dashboard(handler, ctx: ServerContext):
             total_laps = ir['RaceLaps']
             current_camera = state.current_camera(ir)
             camera_target = state.current_camera_target(ir)
+            camera_groups = state.camera_groups(ir)
 
             pitting =  'Yes' if state.driver_in_pits else 'No'
-            
+
             status_color = "#4CAF50"
             status_text = "Connected"
         else:
@@ -45,9 +46,10 @@ def handle_dashboard(handler, ctx: ServerContext):
             total_laps = "N/A"
             current_camera = "N/A"
             camera_target = "N/A"
+            camera_groups = []
 
             pitting = 'N/A'
-            
+
             status_color = "#f44336"
             status_text = "Not Connected"
         
@@ -169,6 +171,47 @@ def handle_dashboard(handler, ctx: ServerContext):
         .refresh-btn:active {{
             transform: translateY(0);
         }}
+
+        .camera-controls {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }}
+
+        .camera-btn {{
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }}
+
+        .camera-btn:hover {{
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }}
+
+        .camera-btn:active {{
+            transform: translateY(0);
+        }}
+
+        .camera-btn.active {{
+            background: #4CAF50;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }}
+
+        .camera-btn:disabled {{
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }}
     </style>
 </head>
 <body>
@@ -236,6 +279,15 @@ def handle_dashboard(handler, ctx: ServerContext):
                 </div>
             </div>
         </div>
+
+        {"" if not is_connected or not camera_groups else f'''
+        <div class="card">
+            <h2>🎥 Camera Controls</h2>
+            <div class="camera-controls">
+                {"".join([f'<button class="camera-btn{"" if camera_target != group["id"] else " active"}" onclick="switchCamera({group["id"]})">{group["name"]}</button>' for group in camera_groups])}
+            </div>
+        </div>
+        '''}
         
         <div class="footer">
             <p>Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
@@ -246,6 +298,31 @@ def handle_dashboard(handler, ctx: ServerContext):
     <script>
         // Auto-refresh every 5 seconds if connected
         {f"setTimeout(() => location.reload(), 5000);" if is_connected else ""}
+
+        // Function to switch camera
+        async function switchCamera(cameraGroupId) {{
+            try {{
+                const response = await fetch('/api/camera/set', {{
+                    method: 'POST',
+                    headers: {{
+                        'Content-Type': 'application/json',
+                    }},
+                    body: JSON.stringify({{ camera_group_id: cameraGroupId }})
+                }});
+
+                const data = await response.json();
+
+                if (data.success) {{
+                    // Reload page to show updated camera
+                    location.reload();
+                }} else {{
+                    alert('Failed to switch camera');
+                }}
+            }} catch (error) {{
+                console.error('Error switching camera:', error);
+                alert('Error switching camera: ' + error.message);
+            }}
+        }}
     </script>
 </body>
 </html>

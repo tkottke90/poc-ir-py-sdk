@@ -29,6 +29,14 @@ def start_server(endpoints, context: ServerContext, port=8000):
             else:
                 self.send_error(404, "Not Found")
 
+        def do_POST(self):
+            path = self.path
+            handler = endpoints.get(path)
+            if handler:
+                handler(self, context)
+            else:
+                self.send_error(404, "Not Found")
+
     httpd = socketserver.TCPServer(("", port), DynamicHandler)
 
     # Start server in a background thread

@@ -2,7 +2,7 @@ import argparse
 from datetime import datetime
 import time
 import os
-from server import ServerContext, start_server, handle_root, handle_driver, handle_camera, handle_dashboard, handle_diagnostics
+from server import ServerContext, start_server, handle_root, handle_driver, handle_camera, handle_set_camera, handle_dashboard, handle_diagnostics
 from event_trackers import pit_monitor
 from iracing import State
 from models.telemetry import TelemetryHandler, FileTelemetryHandler, LiveTelemetryHandler
@@ -210,6 +210,7 @@ if __name__ == '__main__':
             '/api': handle_root,
             '/api/driver': handle_driver,
             '/api/camera': handle_camera,
+            '/api/camera/set': handle_set_camera,
             '/api/diagnostics': handle_diagnostics
         },
         context=context,

@@ -20,6 +20,7 @@ def handle_camera(handler, ctx: ServerContext):
         response = {
             'current_camera': state.current_camera(ir),
             'camera_target': state.current_camera_target(ir),
+            'camera_groups': state.camera_groups(ir),
             'timestamp': datetime.now().isoformat()
         }
 
