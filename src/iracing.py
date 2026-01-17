@@ -75,7 +75,7 @@ class State:
 
         if not isinstance(ir, LiveTelemetryHandler):
             # Not used for replays
-            return 'Replay File'
+            return -1
 
         return self.camera_manager.current_camera.id
 
@@ -114,7 +114,7 @@ class State:
         if not self.show_pit_cams:
             return False
 
-        current_camera = self.current_camera(ir)
+        current_camera = self.current_camera_target(ir)
 
         # When enter pit rode, the state manager will not have detected yet
         # that the driver is in the pits.  We will want to update the camera
@@ -148,12 +148,12 @@ class State:
 
         # Once the driver is back on track, we will want to return to the camera
         # that was active before the pit stop.
-        if driver.driver_on_track(ir) and self.driver_exit_pits:
+        if driver.driver_on_track(ir) and self.driver_in_pits:
             # Switch to last camera
             self.driver_in_pits = False
             self.driver_in_stall = False
             self.driver_exit_pits = False
-            ir.source.cam_switch_num(driver.car_number_int(), 1)
+            ir.source.cam_switch_num(driver.car_number_int(), self.last_camera)
             return True
         
         return False
