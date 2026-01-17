@@ -87,7 +87,7 @@ def handle_driver_overlay_view(handler, ctx: ServerContext):
             iR:{ driver_irating } - <span class="license">{ driver_license }</span>
           </span>
           <span class="driver-stat" data-stat="incidents">
-            Incidents: { driver_incidents } (Team: { team_incidents })
+            Incidents: { driver_incidents } /{ team_incidents }
           </span>
         </div>
       </main>

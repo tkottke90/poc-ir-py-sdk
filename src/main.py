@@ -141,6 +141,18 @@ def loop(ir: TelemetryHandler, state: State):
         debug and print(f'Camera Target: Other Car (Camera: {camTargetIdx}) | Player: {driverCarIdx})')
 
     # == Game Data Management ==
+    print("\n== Game Data ==")
+    print(f"Session: {ir['SessionNum']}\n")
+
+    print(f"Lap: {ir['LapCompleted']} / {ir['RaceLaps']}")
+    print(f"Driver: {driver.UserName} ({driver.CarNumber})")
+    print(f"Incidents:")
+    print(f"  Me: {ir['PlayerCarMyIncidentCount']}")
+    print(f"  Team: {ir['PlayerCarDriverIncidentCount']}")
+    print(f"  Team: {ir['PlayerCarTeamIncidentCount']}")
+    print(f"  Incidents: {ir['PlayerIncidents']}")
+    print(f"Participation: {ir['Precipitation']}")
+
     if debug:
         show_session_stats(ir)
         
