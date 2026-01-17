@@ -13,10 +13,6 @@ class State:
 
     drivers: DriverInfo
 
-    driver_in_pits: bool = False
-    driver_in_stall: bool = False
-    driver_exit_pits: bool = False
-
     def __init__(self):
         self.ir_connected = False
         self.last_car_setup_tick = -1
@@ -25,6 +21,10 @@ class State:
 
         self.camera = None
         self.last_camera = None
+
+        self.driver_in_pits = False
+        self.driver_in_stall = False
+        self.driver_exit_pits = False
 
     # here we check if we are connected to iracing
     # so we can retrieve some data
@@ -75,7 +75,7 @@ class State:
             # Not used for replays
             return 'Replay File'
         
-        return ir['CamCarIdx']
+        return self.camera_manager.current_camera.id
 
     def set_camera_by_driver(self, driver: DriverInfo,ir: TelemetryHandler):
         """

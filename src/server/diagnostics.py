@@ -84,6 +84,14 @@ def handle_diagnostics(handler, ctx: ServerContext):
                 diagnostics['state']['has_ir_connected'] = hasattr(state, 'ir_connected')
                 diagnostics['state']['has_drivers'] = hasattr(state, 'drivers')
                 diagnostics['state']['has_camera_manager'] = hasattr(state, 'camera_manager')
+
+                diagnostics['state']['pits'] = {
+                    'camera': state.current_camera(ir),
+                    'last_camera': getattr(state, 'last_camera', 'Missing'),
+                    'driver_in_pits': getattr(state, 'driver_in_pits', 'Missing'),
+                    'driver_in_stall': getattr(state, 'driver_in_stall', 'Missing'),
+                    'driver_exit_pits': getattr(state, 'driver_exit_pits', 'Missing')
+                }
                 
                 if hasattr(state, 'ir_connected'):
                     diagnostics['state']['ir_connected'] = state.ir_connected

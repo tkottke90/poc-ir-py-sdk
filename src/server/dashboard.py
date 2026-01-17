@@ -29,6 +29,8 @@ def handle_dashboard(handler, ctx: ServerContext):
             total_laps = ir['RaceLaps']
             current_camera = state.current_camera(ir)
             camera_target = state.current_camera_target(ir)
+
+            pitting = state.driver_in_pits and 'Yes' or 'No'
             
             status_color = "#4CAF50"
             status_text = "Connected"
@@ -43,6 +45,8 @@ def handle_dashboard(handler, ctx: ServerContext):
             total_laps = "N/A"
             current_camera = "N/A"
             camera_target = "N/A"
+
+            pitting = 'N/A'
             
             status_color = "#f44336"
             status_text = "Not Connected"
@@ -225,6 +229,10 @@ def handle_dashboard(handler, ctx: ServerContext):
                 <div class="data-row">
                     <span class="data-label">Camera Target:</span>
                     <span class="data-value">{camera_target}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Pitting:</span>
+                    <span class="data-value">{pitting}</span>
                 </div>
             </div>
         </div>
