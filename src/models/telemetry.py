@@ -171,6 +171,14 @@ class FileTelemetryHandler(TelemetryHandler):
         self.current_frame = 0
         self.total_frames = 0
 
+    def to_json(self):
+        frames = []
+
+        for i in range(self.total_frames):
+            frames.append(self.ibt.get(i, 'SessionTime'))
+        
+        return frames
+
     def get_data(self, key):
         # Get data from the current frame instead of the last frame
         if not self.connected or self.current_frame >= self.total_frames:

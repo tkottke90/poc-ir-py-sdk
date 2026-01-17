@@ -142,8 +142,9 @@ def loop(ir: TelemetryHandler, state: State):
 
     # == Game Data Management ==
     print("\n== Game Data ==")
-    print(f"Session: {ir['SessionNum']}\n")
-
+    print(f"Session: {ir['SessionNum']}")
+    print(f"Telemetry File: {ir['TelemetryDiskFile'] or 'N/A'}")
+    print('')
     
     print(f"Lap: {ir['LapCompleted']} / {ir['RaceLaps']}")
     print(f"Driver: {driver.UserName} ({driver.CarNumber})")
