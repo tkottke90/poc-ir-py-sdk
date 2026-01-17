@@ -51,7 +51,7 @@ class State:
         when connected to iRacing.  For replay files, returns 'Replay File'
         """
 
-        if isinstance(ir, FileTelemetryHandler):
+        if not isinstance(ir, LiveTelemetryHandler):
             # Not used for replays
             return 'Replay File'
         
@@ -71,7 +71,7 @@ class State:
         when connected to iRacing.  For replay files, returns 'Replay File'
         """
 
-        if isinstance(ir, FileTelemetryHandler):
+        if not isinstance(ir, LiveTelemetryHandler):
             # Not used for replays
             return 'Replay File'
 
@@ -83,7 +83,7 @@ class State:
         For replay files, returns an empty array.
         """
 
-        if isinstance(ir, FileTelemetryHandler):
+        if not isinstance(ir, LiveTelemetryHandler):
             # Not used for replays
             return []
 
@@ -106,7 +106,7 @@ class State:
         :rtype: bool
         """
         
-        if not isinstance(ir.source, LiveTelemetryHandler):
+        if not isinstance(ir, LiveTelemetryHandler):
             return # Not used for replays
 
         current_camera = self.current_camera(ir)
@@ -120,7 +120,7 @@ class State:
             # Save the camera we were using before the pit stop so we can
             # return to it after the pit stop
             self.last_camera = current_camera
-            ir.cam_switch_pos(0, 1)
+            ir.source.cam_switch_pos(0, 1)
             return True
         
         # Next the driver will go to the pit stall.  Here we will want to switch
@@ -128,7 +128,7 @@ class State:
         if driver.driver_in_pit_stall(ir) and self.driver_in_pits and not self.driver_in_stall:
             # Switch to Pit Stall
             self.driver_in_stall = True
-            ir.cam_switch_pos(0, 1)
+            ir.source.cam_switch_pos(0, 1)
             return True
 
         # After the pit stop is complete, we will want to go to the pit exit camera
@@ -137,7 +137,7 @@ class State:
         if self.driver_in_pits and self.driver_in_stall and not driver.driver_in_pit_stall(ir):
             # Switch to Pit Exit
             self.driver_exit_pits = True
-            ir.cam_switch_pos(0, 1)
+            ir.source.cam_switch_pos(0, 1)
             return True
 
         # Once the driver is back on track, we will want to return to the camera
@@ -147,7 +147,7 @@ class State:
             self.driver_in_pits = False
             self.driver_in_stall = False
             self.driver_exit_pits = False
-            ir.cam_switch_pos(0, 1)
+            ir.source.cam_switch_pos(0, 1)
             return True
         
         return False
@@ -156,7 +156,7 @@ class State:
         if not isinstance(ir, LiveTelemetryHandler):
             return # Not used for replays
         
-        ir.cam_switch_pos(0, cameraId)
+        ir.source.cam_switch_pos(0, cameraId)
         return True
 
     def set_next_tick(self):
