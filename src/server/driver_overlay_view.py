@@ -54,7 +54,7 @@ def handle_driver_overlay_view(handler, ctx: ServerContext):
       }}
 
       .license {{
-        margin: 0.25rem 0.5rem;
+        padding: 0.25rem 0.5rem;
 
         color: {driver_license_color};
         border: 1px solid currentColor;
@@ -80,7 +80,7 @@ def handle_driver_overlay_view(handler, ctx: ServerContext):
         <span id="driver-name">{ driver_name }</span>
         <div id="driver-stats-container">
           <span class="driver-stat" data-stat="license">
-            { driver_license } - <span class="license">{ driver_irating }</span>
+            { driver_irating } - <span class="license">{ driver_license }</span>
           </span>
           <span class="driver-stat" data-stat="incidents">
             Incidents: { driver_incidents } / { team_incidents }
