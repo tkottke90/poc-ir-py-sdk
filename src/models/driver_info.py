@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, computed_field
 from typing import Optional, Union
 from .telemetry import TelemetryHandler
 from irsdk import TrkLoc
@@ -65,6 +65,24 @@ class Driver(BaseModel):
     CarSponsor_2: int = Field(description='Car Sponsor 2', default=0)
     CurDriverIncidentCount: int = Field(description='Current Driver Incident Count', default=0)
     TeamIncidentCount: int = Field(description='Team Incident Count', default=0)
+
+    @computed_field
+    @property
+    def lic_color_hex(self) -> str:
+        """License color as hex string (#RRGGBB)"""
+        if isinstance(self.LicColor, str):
+            if self.LicColor.startswith('0x'):
+                try:
+                    color_int = int(self.LicColor, 16)
+                    return f"#{color_int:06x}"
+                except ValueError:
+                    return "#000000"
+            return "#000000"
+
+        if isinstance(self.LicColor, int):
+            return f"#{self.LicColor:06x}"
+
+        return "#000000"
 
     def is_player(self, idx: int) -> bool:
         return self.CarIdx == idx

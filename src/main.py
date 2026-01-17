@@ -2,8 +2,7 @@ import argparse
 from datetime import datetime
 import time
 import os
-from server import ServerContext, start_server, handle_root, handle_driver, handle_camera, handle_set_camera, handle_toggle_pit_cams, handle_dashboard, handle_diagnostics
-from event_trackers import pit_monitor
+from server import ServerContext, start_server, handle_root, handle_driver, handle_camera, handle_set_camera, handle_toggle_pit_cams, handle_dashboard, handle_diagnostics, handle_driver_overlay_view
 from iracing import State
 from models.telemetry import TelemetryHandler, FileTelemetryHandler, LiveTelemetryHandler
 from logger import setup_logger
@@ -210,12 +209,13 @@ if __name__ == '__main__':
     http_server = start_server(
         endpoints={
             '/': handle_dashboard,
+            '/driver-overlay': handle_driver_overlay_view,
             '/api': handle_root,
             '/api/driver': handle_driver,
             '/api/camera': handle_camera,
             '/api/camera/set': handle_set_camera,
             '/api/camera/toggle-pit-cams': handle_toggle_pit_cams,
-            '/api/diagnostics': handle_diagnostics
+            '/api/diagnostics': handle_diagnostics,
         },
         context=context,
         port=9000
@@ -240,10 +240,10 @@ if __name__ == '__main__':
 
                 # Loop over data
                 logger.debug('Loop: iRacing Connected')
-                loop(
-                  ir = ir,
-                  state = state
-                )
+                # loop(
+                #   ir = ir,
+                #   state = state
+                # )
             else:
                 logger.debug('Loop: iRacing Not Connected')
                 retry += 1

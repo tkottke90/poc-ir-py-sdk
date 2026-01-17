@@ -11,6 +11,7 @@ from server.set_camera import handle_set_camera
 from server.toggle_pit_cams import handle_toggle_pit_cams
 from server.dashboard import handle_dashboard
 from server.diagnostics import handle_diagnostics
+from server.driver_overlay_view import handle_driver_overlay_view
 
 __all__ = [
     'ServerContext',
@@ -21,5 +22,6 @@ __all__ = [
     'handle_set_camera',
     'handle_toggle_pit_cams',
     'handle_dashboard',
-    'handle_diagnostics'
+    'handle_diagnostics',
+    'handle_driver_overlay_view'
 ]

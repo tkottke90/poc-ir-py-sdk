@@ -34,6 +34,8 @@ def handle_dashboard(handler, ctx: ServerContext):
 
             pitting =  'Yes' if state.driver_in_pits else 'No'
 
+            my_incidents = ir['PlayerCarMyIncidentCount']
+
             status_color = "#4CAF50"
             status_text = "Connected"
         else:
@@ -296,13 +298,17 @@ def handle_dashboard(handler, ctx: ServerContext):
                     <span class="data-label">iRating:</span>
                     <span class="data-value">{driver_irating}</span>
                 </div>
+                <div class="data-row">
+                    <span class="data-label">Incidents:</span>
+                    <span class="data-value">{driver_incidents}</span>
+                </div>
             </div>
             
             <div class="card">
                 <h2>📊 Session Stats</h2>
                 <div class="data-row">
-                    <span class="data-label">Driver Incidents:</span>
-                    <span class="data-value">{driver_incidents}</span>
+                    <span class="data-label">My Incidents:</span>
+                    <span class="data-value">{my_incidents}</span>
                 </div>
                 <div class="data-row">
                     <span class="data-label">Team Incidents:</span>

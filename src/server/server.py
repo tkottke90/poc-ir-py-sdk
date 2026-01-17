@@ -4,6 +4,8 @@ import threading
 from server.context import ServerContext
 
 
+
+
 def start_server(endpoints, context: ServerContext, port=8000):
     """
     Start an HTTP server with custom endpoint handlers.
@@ -16,7 +18,10 @@ def start_server(endpoints, context: ServerContext, port=8000):
     Returns:
         The HTTP server instance
     """
-    class DynamicHandler(server.BaseHTTPRequestHandler):
+    class DynamicHandler(server.SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, directory="static", **kwargs)
+
         def log_message(self, format, *args):
             """Override to suppress default logging"""
             pass
@@ -26,8 +31,9 @@ def start_server(endpoints, context: ServerContext, port=8000):
             handler = endpoints.get(path)
             if handler:
                 handler(self, context)
-            else:
-                self.send_error(404, "Not Found")
+                return
+            
+            super().do_GET()
 
         def do_POST(self):
             path = self.path
