@@ -1,5 +1,5 @@
 import time
-from irsdk import IRSDK
+from irsdk import CameraState
 from models.driver_info import Driver, DriverInfo
 from models.telemetry import LiveTelemetryHandler, TelemetryHandler, FileTelemetryHandler
 from camera import CameraManager
@@ -60,6 +60,8 @@ class State:
         if not self.camera_manager:
             self.camera_manager = CameraManager(ir)
 
+        self.camera_manager.refresh(ir)
+
         self.camera = self.camera_manager.current_camera
 
         if not self.camera:
@@ -76,6 +78,8 @@ class State:
         if not isinstance(ir, LiveTelemetryHandler):
             # Not used for replays
             return -1
+
+        self.camera_manager.refresh(ir)
 
         return self.camera_manager.current_camera.id
 
@@ -174,6 +178,21 @@ class State:
         """
         self.show_pit_cams = not self.show_pit_cams
         return self.show_pit_cams
+
+    def toggle_iracing_ui(self, ir: TelemetryHandler):
+        """
+        Toggles the iracing_ui flag and returns the new state.
+
+        :returns: The new state of iracing_ui
+        :rtype: bool
+        """
+        
+        if not isinstance(ir, LiveTelemetryHandler):
+            return False # Not used for replays
+        
+        ir.source.cam_set_state(CameraState.ui_hidden)
+
+        return self.iracing_ui
 
     def set_next_tick(self):
         self.next_tick = time.time() + 1

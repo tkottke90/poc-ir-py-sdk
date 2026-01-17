@@ -333,6 +333,13 @@ def handle_dashboard(handler, ctx: ServerContext):
                     <span class="data-value">{pitting}</span>
                 </div>
                 <div class="toggle-container">
+                    <span class="data-label">Show iRacing UI:</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="pitCamsToggle" {"checked" if show_pit_cams else ""} onchange="togglePitCams()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-container">
                     <span class="data-label">Auto Pit Cameras:</span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="pitCamsToggle" {"checked" if show_pit_cams else ""} onchange="togglePitCams()">
