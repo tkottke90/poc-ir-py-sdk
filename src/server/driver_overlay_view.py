@@ -134,7 +134,7 @@ def handle_driver_overlay_view(handler, ctx: ServerContext):
 
           const incidentsStatEl = document.querySelector('[data-stat="incidents"]');
           if (incidentsStatEl && data.driver_incidents !== undefined && data.team_incidents !== undefined) {{
-            incidentsStatEl.textContent = `Incidents: ${{data.driver_incidents}} /${{data.team_incidents}}`;
+            incidentsStatEl.textContent = `Incidents: ${{data.driver_incidents}} / ${{data.team_incidents}}`;
           }}
         }} catch (error) {{
           // Fail quietly - don't show errors on stream
