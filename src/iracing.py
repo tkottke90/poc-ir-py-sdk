@@ -153,7 +153,7 @@ class State:
         return False
 
     def set_camera(self, cameraId: int, ir: TelemetryHandler):
-        if not isinstance(ir.source, LiveTelemetryHandler):
+        if not isinstance(ir, LiveTelemetryHandler):
             return # Not used for replays
         
         ir.cam_switch_pos(0, cameraId)
